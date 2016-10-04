@@ -1,0 +1,64 @@
+BEGIN::TChiNeuWH
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 0.03634/1000.
+  deltaM        := 126
+  interpolsize +:= 12.5
+  binningX      := 14,112.5,337.5
+  binningY      := 12,-12.5,287.5
+  rangeX        := 126,325
+  rangeY        := 0,200
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WH#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+  diag         +:= 
+ENDDEF
+
+BEGIN::TChiNeuWZ
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 0.10099/1000.
+  interpolsize +:= 5
+  histoDeltaM  +:= 90
+#  smoothCont    := True
+  binningX      := 24,100,700
+  binningY      := 40,0,400
+  rangeX        := 100,500
+  rangeY        := 0,350
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+#  text         +:= another line
+  diag         +:= 
+ENDDEF
+
+BEGIN::TChiNeuWZ_SOS
+  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  brcorr      := 0.10099/1000.
+#  binningX      := 24,87.5,687.5
+#  binningY      := 30,-5,395
+#  rangeX        := 87.5,487.5
+#  rangeY        := -5,345
+ENDDEF
+
+BEGIN::TChiNeuSlepSneu_FD
+  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  brcorr      := 0.5/1000.
+ENDDEF
+
+BEGIN::TChiNeuSlepSneu_05
+  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  brcorr      := 0.5/1000.
+  text       +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
+  text       +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}}
+ENDDEF
+
+BEGIN::TChiNeuSlepSneu_TD
+  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  brcorr      := 1.0/1000.
+ENDDEF
+
+BEGIN::T2tt_SOS
+  xsecfile    := susy-interface/scan/xsec/xsec_T2tt.txt
+  brcorr      := 0.105/1000.
+ENDDEF
