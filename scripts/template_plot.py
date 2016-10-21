@@ -158,24 +158,26 @@ def getDiagPos(model, diag, hist):
 	xpos = [0, 200000]
 	ypos = [0, 200000]
 	if hasattr(diag, "xmin"):
-		xpos[0] = diag.xmin
+		xpos[0] = float(diag.xmin)
 	if hasattr(diag, "xmax"):
-		xpos[1] = diag.xmax
+		xpos[1] = float(diag.xmax)
 	if hasattr(diag, "ymin"):
-		ypos[0] = diag.ymin
+		ypos[0] = float(diag.ymin)
 	if hasattr(diag, "ymax"):
-		ypos[1] = diag.ymax
+		ypos[1] = float(diag.ymax)
 	if hasattr(diag, "xminmass"):
-		xpos[0] = hist.GetBinCenter(hist.FindBin(diag.xminmass))
+		xpos[0] = hist.GetBinCenter(hist.FindBin(float(diag.xminmass)))
 	if hasattr(diag, "xmaxmass"):
-		xpos[1] = hist.GetBinCenter(hist.FindBin(diag.xmaxmass))
+		xpos[1] = hist.GetBinCenter(hist.FindBin(float(diag.xmaxmass)))
 	if hasattr(diag, "yminmass"):
-		ypos[0] = hist.GetBinCenter(hist.FindBin(diag.yminmass))
+		ypos[0] = hist.GetBinCenter(hist.FindBin(float(diag.yminmass)))
 	if hasattr(diag, "ymaxmass"):
-		ypos[1] = hist.GetBinCenter(hist.FindBin(diag.ymaxmass))
+		ypos[1] = hist.GetBinCenter(hist.FindBin(float(diag.ymaxmass)))
 	if hasattr(diag, "offset"):
-		ypos[0] = xpos[0] - diag.offset
-		ypos[1] = xpos[1] - diag.offset
+		xpos[0] = model.rangeX[0]
+		xpos[1] = model.rangeX[1]
+		ypos[0] = xpos[0] - float(diag.offset)
+		ypos[1] = xpos[1] - float(diag.offset)
 	return array('d',xpos), array('d',ypos)
 
 class Entry():
@@ -188,14 +190,10 @@ class Entry():
 			setattr(self, e[0], e[1])
 
 class Graph():
-	def __init__(self, tfile, nominal, plus, minus, linecolor, areacolor, useSmooth = False):
-		print tfile
-		print nominal
-		add = "_smoothed" if useSmooth else ""
-		self.nominal   = tfile.Get(nominal+add)##; self.nominal.SetDirectory(0)
-		self.plus      = tfile.Get(plus   +add)##; self.plus   .SetDirectory(0)
-		self.minus     = tfile.Get(minus  +add)##; self.minus  .SetDirectory(0)
-		print self.nominal
+	def __init__(self, tfile, nominal, plus, minus, linecolor, areacolor):
+		self.nominal   = tfile.Get(nominal)##; self.nominal.SetDirectory(0)
+		self.plus      = tfile.Get(plus   )##; self.plus   .SetDirectory(0)
+		self.minus     = tfile.Get(minus  )##; self.minus  .SetDirectory(0)
 		self.linecolor = linecolor
 		self.areacolor = areacolor
 
@@ -203,12 +201,14 @@ class Model():
 	def __init__(self):
 		self.name       = "[MODEL:name]"
 		self.mode       = "[MODEL:mode]"
+		self.plane      = "[MODEL:plane]"
 		self.deltaM     = float("[MODEL:deltaM]") if "[MODEL:deltaM]" else 1
-		self.isNloNll   = ("[MODEL:noNloNll]"!="True")
+		self.isNloNll   = ("[MODEL:noNllNlo]"!="True")
 		self.binningX   = "[MODEL:binningX]"
 		self.binningY   = "[MODEL:binningY]"
 		self.rangeX     = [float(f) for f in "[MODEL:rangeX]".split(",")]
 		self.rangeY     = [float(f) for f in "[MODEL:rangeY]".split(",")]
+		self.rangeZ     = [float(f) for f in "[MODEL:rangeZ]".split(",")]
 		self.legendX    = "[MODEL:legendX]"
 		self.legendY    = "[MODEL:legendY]"
 		self.nDivX      = int("[MODEL:nDivX]")
@@ -216,6 +216,15 @@ class Model():
 		self.text       = [[MODEL:text]]
 		self.diag       = [[MODEL:diag]]
 		self.smoothCont = ("[MODEL:smoothCont]"=="True")
+	def setGraphs(self):
+		add = ""
+		if self.smoothCont: add = "_smoothed"
+		self.gr_obs     = "[MODEL:gr_obs]"  if "[MODEL:gr_obs]"  else "gr_obs" +add
+		self.gr_op1s    = "[MODEL:gr_op1s]" if "[MODEL:gr_op1s]" else "gr_op1s"+add
+		self.gr_om1s    = "[MODEL:gr_om1s]" if "[MODEL:gr_om1s]" else "gr_om1s"+add
+		self.gr_exp     = "[MODEL:gr_exp]"  if "[MODEL:gr_exp]"  else "gr_exp" +add
+		self.gr_ep1s    = "[MODEL:gr_ep1s]" if "[MODEL:gr_ep1s]" else "gr_ep1s"+add
+		self.gr_em1s    = "[MODEL:gr_em1s]" if "[MODEL:gr_em1s]" else "gr_em1s"+add
 
 class ThePlot():
 	def __init__(self, model, histopath, smearpath, plotpath, exts):
@@ -257,8 +266,9 @@ class ThePlot():
 		for i,diag in enumerate(self.model.diag):
 			self.drawDiagonal(Entry(diag),i)
 	def drawDiagonal(self, diag, num):
+		print "i am called"
 		xpos, ypos = getDiagPos(self.model, diag, self.plot.histo)
-		diagonal = ROOT.TGraph(3, xpos, ypos)
+		diagonal = ROOT.TGraph(2, xpos, ypos)
 		diagonal.SetName("diagonal"+str(num))
 		diagonal.SetFillColor(ROOT.kWhite)
 		diagonal.SetLineColor(getattr(diag, "color", ROOT.kGray))
@@ -293,7 +303,7 @@ class ThePlot():
 		CMS_lumi(self.c, 4, 0)
 		text = []
 		for i,line in enumerate(self.model.text):
-			text.append(ROOT.TLatex(self.xmin+3*xRange/100, self.ymax-(0.15+0.95*i)*yRange/100*10, line))
+			text.append(ROOT.TLatex(self.xmin+3*xRange/100, self.ymax-(0.15+0.75*i)*yRange/100*10, line))
 			#text[-1].SetNDC()
 			text[-1].SetTextAlign(13)
 			text[-1].SetTextFont(42)
@@ -345,21 +355,21 @@ class XSecPlot():
 		self.model   = model
 		self.c       = self.parent.c
 		fin          = ROOT.TFile(histopath, "READ")
-		self.xsec    = fin.Get("obs_xs")
+		self.xsec    = fin.Get(self.model.plane)
 		self.xsec .SetDirectory(0)
 		fin.Close()
 		self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, self.model.rangeY[0], self.model.rangeY[1])
 		fin          = ROOT.TFile(smearpath, "READ")
-		self.exp     = Graph(fin, "gr_exp", "gr_ep1s", "gr_em1s", ROOT.kRed  , ROOT.kOrange, self.model.smoothCont)
-		self.obs     = Graph(fin, "gr_obs", "gr_op1s", "gr_om1s", ROOT.kBlack, ROOT.kGray  , self.model.smoothCont)
+		self.exp     = Graph(fin, self.model.gr_exp, self.model.gr_ep1s, self.model.gr_em1s, ROOT.kRed  , ROOT.kOrange)
+		self.obs     = Graph(fin, self.model.gr_obs, self.model.gr_op1s, self.model.gr_om1s, ROOT.kBlack, ROOT.kGray  )
 		fin.Close()
 	def setStyle(self):
 		self.histo.GetZaxis().SetLabelFont(42)
 		self.histo.GetZaxis().SetTitleFont(42)
 		self.histo.GetZaxis().SetLabelSize(0.035)
 		self.histo.GetZaxis().SetTitleSize(0.035)
-		self.xsec.SetMinimum(0.001)
-		self.xsec.SetMaximum(2)
+		self.xsec.SetMinimum(self.model.rangeZ[0])
+		self.xsec.SetMaximum(self.model.rangeZ[1])
 		NRGBs = 5
 		NCont = 255
 		stops = array("d",[0.00, 0.34, 0.61, 0.84, 1.00])
@@ -387,36 +397,42 @@ class XSecPlot():
 		self.drawLegend() 
 	def drawContours(self):
 		# observed
-		self.obs.nominal.SetLineColor(self.obs.linecolor)
-		self.obs.nominal.SetLineStyle(1)
-		self.obs.nominal.SetLineWidth(4)
+		if self.obs.nominal:
+			self.obs.nominal.SetLineColor(self.obs.linecolor)
+			self.obs.nominal.SetLineStyle(1)
+			self.obs.nominal.SetLineWidth(4)
 		# observed + 1sigma
-		self.obs.plus.SetLineColor(self.obs.linecolor)
-		self.obs.plus.SetLineStyle(1)
-		self.obs.plus.SetLineWidth(2)
+		if self.obs.plus:
+			self.obs.plus.SetLineColor(self.obs.linecolor)
+			self.obs.plus.SetLineStyle(1)
+			self.obs.plus.SetLineWidth(2)
 		# observed - 1sigma
-		self.obs.minus.SetLineColor(self.obs.linecolor)
-		self.obs.minus.SetLineStyle(1)
-		self.obs.minus.SetLineWidth(2)
+		if self.obs.minus:
+			self.obs.minus.SetLineColor(self.obs.linecolor)
+			self.obs.minus.SetLineStyle(1)
+			self.obs.minus.SetLineWidth(2)
 		# expected
-		self.exp.nominal.SetLineColor(self.exp.linecolor)
-		self.exp.nominal.SetLineStyle(7)
-		self.exp.nominal.SetLineWidth(4)
+		if self.exp.nominal:
+			self.exp.nominal.SetLineColor(self.exp.linecolor)
+			self.exp.nominal.SetLineStyle(7)
+			self.exp.nominal.SetLineWidth(4)
 		# expected + 1sigma
-		self.exp.plus.SetLineColor(self.exp.linecolor)
-		self.exp.plus.SetLineStyle(7)
-		self.exp.plus.SetLineWidth(2)
+		if self.exp.plus:
+			self.exp.plus.SetLineColor(self.exp.linecolor)
+			self.exp.plus.SetLineStyle(7)
+			self.exp.plus.SetLineWidth(2)
 		# expected - 1sigma
-		self.exp.minus.SetLineColor(self.exp.linecolor)
-		self.exp.minus.SetLineStyle(7)
-		self.exp.minus.SetLineWidth(2)
+		if self.exp.minus:
+			self.exp.minus.SetLineColor(self.exp.linecolor)
+			self.exp.minus.SetLineStyle(7)
+			self.exp.minus.SetLineWidth(2)
 		# DRAW LINES
-		self.exp.nominal.Draw("LSAME")
-		self.exp.plus   .Draw("LSAME")
-		self.exp.minus  .Draw("LSAME")
-		self.obs.nominal.Draw("LSAME")
-		self.obs.plus   .Draw("LSAME")
-		self.obs.minus  .Draw("LSAME")
+		if self.exp.nominal: self.exp.nominal.Draw("LSAME")
+		if self.exp.plus   : self.exp.plus   .Draw("LSAME")
+		if self.exp.minus  : self.exp.minus  .Draw("LSAME")
+		if self.obs.nominal: self.obs.nominal.Draw("LSAME")
+		if self.obs.plus   : self.obs.plus   .Draw("LSAME")
+		if self.obs.minus  : self.obs.minus  .Draw("LSAME")
 	def drawHisto(self):
 		self.histo.Draw() 
 		self.xsec .Draw("COLZSAME") 
@@ -513,7 +529,7 @@ class SensPlot():
 		self.model   = model
 		self.c       = self.parent.c
 		fin          = ROOT.TFile(histopath, "READ")
-		self.xsec    = fin.Get("obs_xs")
+		self.xsec    = fin.Get(self.model.plane)
 		self.histo   = self.xsec.Clone("axes")
 		self.histo.Reset()
 		self.xsec .SetDirectory(0)
@@ -524,10 +540,8 @@ class SensPlot():
 		self.histo.GetZaxis().SetTitleFont(42)
 		self.histo.GetZaxis().SetLabelSize(0.035)
 		self.histo.GetZaxis().SetTitleSize(0.035)
-		#self.histo.SetMinimum(-2)
-		#self.histo.SetMaximum(2)
-		self.xsec.SetMinimum(0.001)
-		self.xsec.SetMaximum(2)
+		self.xsec.SetMinimum(self.model.rangeZ[0])
+		self.xsec.SetMaximum(self.model.rangeZ[1])
 		NRGBs = 5
 		NCont = 255
 		stops = array("d",[0.00, 0.34, 0.61, 0.84, 1.00])
@@ -567,6 +581,7 @@ class SensPlot():
 
 ## run the whole damn thing
 model = Model()
+model.setGraphs()
 plot  = ThePlot(model, histopath+"/histo_HADD.root", smearpath+"/smear_HADD.root", plotpath+"/plot", exts)
 plot.prepare()
 plot.draw()

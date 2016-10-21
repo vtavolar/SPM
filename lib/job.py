@@ -12,18 +12,20 @@ class Job():
 		self.args       = args
 		self.options    = options
 		self.forceLocal = forceLocal
-		self.prepare()
+		self.tasks      = self.prepare(self.script, self.args)
+	def addTask(self, script, args):
+		self.tasks += self.prepare(script, args, True)
 	def batchRuns(self):
 		if self.batchId==-1: return False
 		if self.options.queue in ["all.q", "long.q", "short.q"]:
 			jobLine = bash(self.master, "qstat -j "+str(self.batchId))
-			return not("Following jobs do not exist" in jobLine)
+			return not(jobLine=="" or "Following jobs do not exist" in jobLine)
 		elif self.options.queue in ["batch"] and os.path.isdir('/pool/ciencias/'):
 			jobLine = bash(self.master, "qstat "+str(self.batchId)) 
-			return not("Unknown Job Id Error" in jobLine)
+			return not(jobLine=="" or "Unknown Job Id Error" in jobLine)
 		else:
 			jobLine = bash(self.master, "bjobs "+str(self.batchId))
-			return not("Job <"+str(self.batchId)+"> is not found" in jobLine)
+			return not(jobLine=="" or "Job <"+str(self.batchId)+"> is not found" in jobLine)
 		return False
 	def isDone(self):
 		return os.path.exists(self.master.jobdir+"/"+self.id)
@@ -32,9 +34,9 @@ class Job():
 		if stillRunning: return False
 		if not os.path.exists(self.master.jobdir+"/"+self.id): return True
 		return os.path.exists(self.master.jobdir+"/err_"+self.id)
-	def prepare(self):
+	def prepare(self, useScript, useArgs, isAddedTask = False):
 		template = [l.strip("\n") for l in open(self.master.srcdir+"/template_"+self.template,"r").readlines()]
-		task = []
+		tasks    = []
 		for line in template:
 			line=line.replace("[JOBDIR]"     , self.master.jobdir                                       )
 			line=line.replace("[JOBID]"      , self.id                                                  )
@@ -54,19 +56,22 @@ class Job():
 			line=line.replace("[PRELIMINARY]", self.master.options.preliminary                          )
 			line=line.replace("[LUMIS]"      , ",".join("'"+l+"'" for l in self.bundle.lumis)           )
 			line=line.replace("[ENERGY]"     , self.master.options.energy                               )
-			line=line.replace("[PACKAGES]"     , " ".join(["'"+p+"'" for p in self.args["packages"]]) if "packages" in self.args.keys() else "")
-			line=line.replace("[CARD]"       , self.args["card"]  if "card"  in self.args.keys() else "")
-			line=line.replace("[MASS1]"      , self.args["mass1"] if "mass1" in self.args.keys() else "")
-			line=line.replace("[MASS2]"      , self.args["mass2"] if "mass2" in self.args.keys() else "")
+			line=line.replace("[PACKAGES]"     , " ".join(["'"+p+"'" for p in useArgs["packages"]]) if "packages" in useArgs.keys() else "")
+			line=line.replace("[CARD]"       , useArgs["card"]  if "card"  in useArgs.keys() else "")
+			line=line.replace("[MASS1]"      , useArgs["mass1"] if "mass1" in useArgs.keys() else "")
+			line=line.replace("[MASS2]"      , useArgs["mass2"] if "mass2" in useArgs.keys() else "")
 			for attr in self.master.model.__dict__.keys():
 				line=line.replace("[MODEL:"+attr+"]", self.master.getModelParam(attr))
-			task.append(line)
+			tasks.append(line)
 		if self.isPython:
-			f = open(self.script, "w")
-			f.write("\n".join(task))
+			f = open(useScript, "w")
+			f.write("\n".join(tasks))
 			f.close()
-			task = ["python "+self.script]
-			self.script = self.script.replace(".py",".sh")
+			tasks = ["python "+useScript]
+			if not isAddedTask:
+				self.script = useScript.replace(".py",".sh")
+		return tasks
+	def prepareRun(self):
 		runner = "lxbatch_runner.sh"
 		if self.options.queue in ["short.q", "all.q", "long.q"]:
 			runner = "psibatch_runner.sh"
@@ -75,13 +80,14 @@ class Job():
 		r = [l.strip("\n") for l in open(self.master.srcdir+"/"+runner, "r").readlines()]
 		f = open(self.script, "w")
 		for line in r:
-			line = line.replace("[JOBDIR]", self.master.jobdir)
-			line = line.replace("[ID]"    , self.id           )
-			line = line.replace("[TASK]"  , "\n".join(task)   )
+			line = line.replace("[JOBDIR]", self.master.jobdir   )
+			line = line.replace("[JOBID]" , self.id              )
+			line = line.replace("[TASK]"  , "\n".join(self.tasks))
 			f.write(line+"\n")
 		f.close()
 		cmd(self.master, "chmod 755 "+self.script)
 	def run(self):
+		self.prepareRun()
 		if self.options.queue and not self.forceLocal:
 			super = "bsub -q {queue} -J SPM_{name} "
 			if self.options.queue in ["all.q", "long.q", "short.q"]:

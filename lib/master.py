@@ -49,16 +49,17 @@ class SPM():
 			self.init.update("cmssw", self.cmssw)
 	def clearJobs(self):
 		if hasattr(self, "jobs") and len(self.jobs)>0: 
-			njobs = [j.isDone() for j in self.jobs].count(False)
+			njobs = [j.isDone() or j.isError() for j in self.jobs].count(False)
 			while njobs > 0:
 				nerr = [j.isError() for j in self.jobs].count(True)
 				self.talk(str(njobs)+"/"+str(len(self.jobs))+" jobs are running. Checking back in 5 seconds...")
 				time.sleep(5)
-				njobs = [j.isDone() for j in self.jobs].count(False)
+				njobs = [j.isDone() or j.isError() for j in self.jobs].count(False)
 			nerr = [j.isError() for j in self.jobs].count(True)
 			if nerr>0:
 				self.error(str(nerr)+"/"+str(len(self.jobs))+" jobs have finished in error state.")
 		self.jobs = []
+		self.jobcount = -1
 		cleandir(self, self.jobdir)
 		cleandir(self, self.cmssw +"/SPM")
 	def error(self, message):
@@ -75,13 +76,19 @@ class SPM():
 		if not os.path.exists(self.dir+"/init"):
 			self.error("Cannot find my init file")
 		self.init = Init(self, self.dir+"/init")
-	def registerJob(self, bundle, name, script, args = {}, forceLocal = False):
-		if not hasattr(self, "jobs"): self.jobs = []
+	def registerJob(self, bundle, name, script, args = {}, forceLocal = False, collect = 0):
+		if not hasattr(self, "jobs"    ): self.jobs = []
+		if not hasattr(self, "jobcount"): self.jobcount = -1
+		self.jobcount += 1
+		if collect>0 and self.jobcount%collect!=0:
+			self.jobs[-1].addTask(script, args)
+			return
 		self.jobs.append(Job(bundle, name, script, args, self.options, forceLocal))
 	def runJob(self, bundle, name, script, args = {}, forceLocal = False):
 		theJob = Job(bundle, name, script, args, self.options, forceLocal)
 		theJob.run()
-		while not theJob.isDone():
+		while not (theJob.isDone() or theJob.isError()):
+			self.talk("Job '"+name+"' is running. Checking back in 5 seconds...")
 			time.sleep(5)
 		if theJob.isError():
 			self.error("Job '"+name+"' has finished in error state.")
@@ -105,9 +112,10 @@ class SPM():
 	def talkBundle(self, bundle):
 		self.talk("GOING TO BUILD BUNDLE '"+bundle.name+"'")
 		self.addToTalk("model: "+bundle.model)
-		self.addToTalk("regions: "+",".join([r for r in list(set(p.region for p in bundle.packages))]))
-		self.addToTalk("lumis: "+",".join([l for l in list(set(p.lumi for p in bundle.packages))]))
-		self.addToTalk("packages: "+",".join([p.name for p in bundle.packages]))
+		self.addToTalk("regions: "+",".join(sorted([r for r in list(set(p.region for p in bundle.packages))])))
+		self.addToTalk("lumis: "+",".join(sorted([l for l in list(set(p.lumi for p in bundle.packages))])))
+		self.addToTalk("packages: "+",".join(sorted([p.name for p in bundle.packages])))
+		self.addToTalk("remark: "+getattr(bundle,"remark",""))
 	def talkImport(self):
 		self.talk("GOING TO SEARCH FOR AND IMPORT PACKAGES IN "+self.options.inputdir)
 	def talkPool(self, pool):

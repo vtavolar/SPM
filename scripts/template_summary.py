@@ -1,6 +1,7 @@
 import os, sys, ROOT
 
 bundledir  = "[BUNDLEDIR]/[BUNDLE]"
+exclude    = int("[MODEL:excludeDM]")
 limitdir   = bundledir+"/limits"
 summarydir = bundledir+"/summary"
 
@@ -27,6 +28,8 @@ for file in os.listdir(limitdir):
 	ns = file.rstrip(".root").split(".")
 	lims[0] = int(ns[-2].lstrip("mH"))
 	lims[1] = int(ns[-1])
+
+	if abs(lims[0]-lims[1])<=exclude: continue
 
 	rt = rf.Get("limit")
 	for ev in rt:

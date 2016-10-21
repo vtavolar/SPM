@@ -70,7 +70,7 @@ class Bundle():
 			cp(self.master, self.packages[0].cardsdir+"/"+point+".txt", self.cardsdir)
 	def combineCards(self, point):
 		if point.strip()=="": return
-		self.master.registerJob(self, "combine_"+point, "combine.sh", {"packages": [p.name for p in self.packages], "card": point+".txt"})
+		self.master.registerJob(self, "combine_"+point, "combine.sh", {"packages": [p.name for p in self.packages], "card": point+".txt"}, False, 20)
 	def create(self, packages = []):
 		if len(self.packages)==0: self.master.error("I cannot create the bundle '"+self.name+"' without any packages!")
 		self.selectPoints()
@@ -96,14 +96,15 @@ class Bundle():
 		for opt in modeloptions:
 			opts[opt] = self.master.getModelParam(opt)
 		self.master.talk("Enter the name of the parameter you want to tune for tier '"+tier+"' or enter 'q' to continue with the next tier:")
-		self.master.addToTalk("  name"+" "*(max([len(k) for k in opts.keys()])-4)+" = value")
+		maxLength = max([len(k) for k in opts.keys()])
+		self.master.addToTalk("  name"+" "*(maxLength-4)+" = value")
 		for k,v in opts.iteritems():
-			self.master.addToTalk("  "+k+" = "+v)
+			self.master.addToTalk("  "+k+" "*(maxLength-len(k)) +" = "+v)
 		chosen = raw_input(">> ").strip()
 		if chosen == "q": return False
 		if not chosen in opts.keys():
 			self.master.addToTalk("The parameter '"+chosen+"' does not exist. Try again:")
-			self.getTuningOptions(tier, modeloptions, additionals)
+			return self.getTuningOptions(tier, modeloptions, additionals)
 		value = askForInput(self.master, "Give the new value to use for parameter '"+chosen+"':")
 		setattr(self.master.options, chosen, value) 
 		return True
@@ -136,7 +137,8 @@ class Bundle():
 	def inspectHisto(self, histIdx = 0):
 		self.master.talk("Inspecting HISTO (enter 'edit' to tune parameters of this tier):")
 		newId = self.inspectRoot(self.histodir+"/histo_HADD.root", histIdx)
-		if newId.isdigit(): self.inspectRoot(self.histodir+"/histo_HADD.root", newId)
+		while newId.isdigit():
+			newId = self.inspectRoot(self.histodir+"/histo_HADD.root", int(newId))
 		if newId == "edit": return self.tuneHisto()
 		return False
 	def inspectLimit(self, mass1 = "", mass2 = ""):
@@ -150,14 +152,14 @@ class Bundle():
 			theLimits = filter(lambda entry: entry[0:len(theFilter)]==theFilter, theLimits)
 		self.master.addToTalk("".join(theLimits))
 		newMass = askForInput(self.master, "Give the mass of particle 1 or the mass of both particles (separated by a '+') for which you want to inspect the limit. Or enter 'q' to continue:")
-		if   newMass.isDigit(): self.inspectLimit(newMass)
+		if   newMass.isdigit(): self.inspectLimit(newMass)
 		elif "+" in newMass   : self.inspectLimit(newMass.split("+")[0].strip(), newMass.split("+")[1].strip())
 	def inspectPlot(self, histIdx = 0):
 		self.master.talk("Inspecting PLOT (enter 'edit' to tune parameters of this tier):")
 		if os.path.exists(self.plotdir+"/plot.pdf"):
-			cmd(self.master, "display "+self.plotdir+"/plot.pdf")
+			cmd(self.master, "display "+self.plotdir+"/plot.pdf &")
 		elif os.path.exists(self.plotdir+"/plot.png"):
-			cmd(self.master, "display "+self.plotdir+"/plot.png")
+			cmd(self.master, "display "+self.plotdir+"/plot.png &")
 		else:
 			return
 		newId = askForInput(self.master, "Enter 'q' to continue:")
@@ -168,21 +170,29 @@ class Bundle():
 		f = ROOT.TFile.Open(path, "read")
 		f.cd()
 		it = -1
-		for key in ROOT.gDirectory.GetListOfKeys():
+		listOfKeys = ROOT.gDirectory.GetListOfKeys()
+		if len(listOfKeys)==0: return
+		for key in listOfKeys:
 			it += 1
 			if not it == histIdx: continue
-			hist = key.ReadObj()
-		if "TGraph" in hist.ClassName() or hist.GetDimension()==2: hist.Draw("COLZ")
-		else                                                     : hist.Draw("hist")
-		c.SaveAs(self.inspectdir+"/"+hist.GetName()+".png")
+			hist = key.ReadObj(); name = hist.GetName()
+		if   "TGraph" in hist.ClassName(): hist.Draw("C"   )
+		elif hist.GetDimension()==2      : hist.Draw("COLZ")
+		else                             : hist.Draw("hist")
+		self.master.addToTalk("ID : Name of TObject")
+		self.master.addToTalk("\n".join(["%s : %s"%(idString(i,2,True),key.ReadObj().GetName()) for i,key in enumerate(listOfKeys)]))
+		self.master.addToTalk("Inspecting TObject '"+name+"'")
+		if not os.path.exists(self.inspectdir+"/"+name+".png"):
+			c.SaveAs(self.inspectdir+"/"+name+".png")
+		cmd(self.master, "display "+self.inspectdir+"/"+name+".png &")
 		f.Close()
-		cmd(self.master, "display "+self.inspectdir+"/"+hist.GetName()+".png")
-		newId = askForInput(self.master, "Give the index of the next histogram to inspect or enter 'q' to continue:")
+		newId = askForInput(self.master, "Give the index of the next histogram or graph to inspect or enter 'edit' to tune the parameters of this tier or 'q' to continue to the next tier:")
 		return newId
 	def inspectSmear(self, histIdx = 0):
 		self.master.talk("Inspecting SMEAR (enter 'edit' to tune parameters of this tier):")
 		newId = self.inspectRoot(self.smeardir+"/smear_HADD.root", histIdx)
-		if newId.isdigit(): self.inspectRoot(self.smeardir+"/smear_HADD.root", newId)
+		while newId.isdigit():
+			newId = self.inspectRoot(self.smeardir+"/smear_HADD.root", int(newId))
 		if newId=="edit"  : return self.tuneSmear()
 		return False
 	def inspectSummary(self):
@@ -211,10 +221,11 @@ class Bundle():
 		if not os.path.exists(self.dir +"/init"): return
 		if hasattr(self, "init"): return
 		self.init = Init(self, self.dir+"/init")
-		if self.init.read("packages").find(",")>-1: ps = self.packages
-		else: ps = [self.packages]
-		del self.packages
-		self.packages = [self.pool.getPackage(p.strip()) for p in ps]
+		self.updatePackages()
+		#if self.init.read("packages").find(",")>-1: ps = self.packages
+		#else: ps = [self.packages]
+		#del self.packages
+		#self.packages = [self.pool.getPackage(p.strip()) for p in ps]
 	def plot(self):
 		## draw the final plot
 		if "plot" in self.master.options.excludeTiers: return
@@ -238,16 +249,18 @@ class Bundle():
 		                 "regions" : ",".join(self.regions), \
 		                 "packages": ",".join([p.name for p in self.packages]), \
 		                 "points"  : ",".join(self.points), \
-		                 "status"  : getattr(self, "status", "init")})
+		                 "status"  : getattr(self, "status", "init"), \
+		                 "remark"  : self.master.options.remark if self.master.options.remark else ""})
+		self.updatePackages()
 	def tuneHisto(self):
-		return getTuningOptions("histo", ["histoDeltaM", "interpolsize", "binningX", "binningY"])
+		return self.getTuningOptions("histo", ["histoDeltaM", "interpolsize", "paramX", "paramY", "binningX", "binningY"])
 	def tunePlot(self):
-		return getTuningOptions("plot" , ["noNloNll", "rangeX", "rangeY", "smoothCont", "legendX", "legendY", "text", "diag"])
+		return self.getTuningOptions("plot" , ["noNllNlo", "rangeX", "rangeY", "smoothCont", "legendX", "legendY", "text", "diag"])
 	def tuneSmear(self):
-		return getTuningOptions("smear", ["smoothAlgo", "nSmooth"])
+		return self.getTuningOptions("smear", ["smoothAlgo", "nSmooth"])
 	def runLimit(self, point):
 		if not point: return
-		self.master.registerJob(self, "limit_"+point, "limit.sh", {"card": point+".txt", "mass1": point.split("_")[0], "mass2": point.split("_")[1]})
+		self.master.registerJob(self, "limit_"+point, "limit.sh", {"card": point+".txt", "mass1": point.split("_")[0], "mass2": point.split("_")[1]},False,3)
 	def selectGoodMasspoints(self):
 		self.points = []
 		masspoints  = []
@@ -279,6 +292,12 @@ class Bundle():
 		self.master.runJob(self, "summary", "summary.py", {}, not self.master.options.qall)
 		self.init.update("status", "summary")
 		self.inspect("summary")
+	def updatePackages(self):
+		if len(self.packages)==0: return
+		if hasattr(self.packages[0],"name"): return
+		ps = self.packages
+		del self.packages
+		self.packages = [self.pool.getPackage(p.strip()) for p in ps]
 		
 
 class BundleHandler():
@@ -375,11 +394,13 @@ class BundleHandler():
 		for b in self.bundlesToRun:
 			b.create()
 	def view(self, bundles = [], showDiff = False):
-		if len(bundles)==0: bundles = self.getListOfBundles()
+		if len(bundles)==0: bundles = self.bundles #self.getListOfBundles()
 		self.master.addToTalk("ID : Name               : Model                : Packages")
 		for i,b in enumerate(bundles):
 			if not b: continue
-			self.master.addToTalk("%s : %s : %s : %s"%(idString(i,2,True),b.name,idString(p.model,20),",".join([p.name for p in b.packages])))
+			print b.name
+			print b.packages
+			self.master.addToTalk("%s : %s : %s : %s"%(idString(i,2,True),b.name,idString(b.model,20),",".join([p.name for p in b.packages])))
 		if not showDiff: return
 		remaining = filter(lambda b: b not in bundles, self.bundles)
 		if len(remaining)==0: return

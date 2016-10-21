@@ -73,7 +73,7 @@ class PoolHandler():
 					pname = timestamp(False)
 					self.packages.append(Package(self.master, pname, importdir+"/"+p+"/"+l+"/"+m))
 	def deletePackage(self, package):
-		rm(self.pooldir+"/"+package.name)
+		rm(self.master, self.pooldir+"/"+package.name)
 		if package in self.packages: self.packages.remove(package)
 		del package
 	def deletePackageByName(self, pname):
@@ -119,10 +119,10 @@ class PoolHandler():
 		return newList
 	def view(self, packages = [], showDiff = False):
 		if len(packages)==0: packages = self.getListOfPackages() 
-		print "ID : Name               : Model                : Region               : Lumi"
+		print "ID : Name               : Model                : Region               : Lumi       : Importdir"
 		for i,p in enumerate(packages):
 			if not p: continue
-			print "%s : %s : %s : %s : %s"%(idString(i,2,True),p.name,idString(p.model,20),idString(p.region,20),idString(p.lumi,10))
+			print "%s : %s : %s : %s : %s : %s"%(idString(i,2,True),p.name,idString(p.model,20),idString(p.region,20),idString(p.lumi,10),p.importdir)
 		if not showDiff: return
 		remaining = filter(lambda p: p not in packages, self.packages)
 		if len(remaining)==0: return

@@ -1,3 +1,3 @@
 #!/bin/bash
 [TASK]
-touch [JOBDIR]/[ID]
+touch [JOBDIR]/[JOBID]

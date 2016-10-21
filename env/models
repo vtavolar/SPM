@@ -1,26 +1,40 @@
 BEGIN::TChiNeuWH
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 0.03634/1000.
-  deltaM        := 126
-  interpolsize +:= 12.5
-  binningX      := 14,112.5,337.5
-  binningY      := 12,-12.5,287.5
-  rangeX        := 126,325
+  mode          := xsec
+  cutGraphsX    := 250
+  preAlgo       := k3a
+  smoothAlgo    := kba
+  nSmooth       := 3
+  deltaM        := 125
+  interpolsize  := 25
+  binningX      := 9,112.5,337,5
+  binningY      := 9,-12.5,212.5
+  rangeX        := 125,325
   rangeY        := 0,200
+  basis         := mu0
+  plane         := obs_xs0
+  skipContour  +:= ep2s;em2s
+#  gr_em1s       := gr_em1s_smoothed
   legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  nDivX         := 205
+  nDivY         := 205
   text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WH#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
-  diag         +:= 
+  diag         +:= offset=125 
 ENDDEF
 
 BEGIN::TChiNeuWZ
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 0.10099/1000.
-  interpolsize +:= 5
-  histoDeltaM  +:= 90
+  interpolsize  := 5
+  histoDeltaM  +:= 88
 #  smoothCont    := True
-  binningX      := 24,100,700
-  binningY      := 40,0,400
+#  paramY        := mass1-mass2
+  binningX      := 1200,100,700
+  binningY      := 80,0,400
+#  binningX      := 24,100,700
+#  binningY      := 40,0,400
   rangeX        := 100,500
   rangeY        := 0,350
   legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
@@ -28,7 +42,6 @@ BEGIN::TChiNeuWZ
   nDivX         := 205
   nDivY         := 205
   text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
-#  text         +:= another line
   diag         +:= 
 ENDDEF
 
@@ -42,20 +55,58 @@ BEGIN::TChiNeuWZ_SOS
 ENDDEF
 
 BEGIN::TChiNeuSlepSneu_FD
-  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
-  brcorr      := 0.5/1000.
+  xsecfile      := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  brcorr        := 0.5/1000.
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := True
+  binningX      := 45,87.5,1212.5
+  binningY      := 37,-12.5,912.5 
+  interpolsize  := 5
+  rangeX        := 100,1200
+  rangeY        := 0,900
+  rangeZ        := 0.0001,2
 ENDDEF
 
 BEGIN::TChiNeuSlepSneu_05
-  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
-  brcorr      := 0.5/1000.
-  text       +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
-  text       +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}}
+  xsecfile      := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  brcorr        := 0.5/1000.
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := True
+  binningX      := 45,87.5,1212.5
+  binningY      := 37,-12.5,912.5 
+  interpolsize  := 5
+  rangeX        := 100,1200
+  rangeY        := 0,900
+  rangeZ        := 0.0001,2
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}}
 ENDDEF
 
 BEGIN::TChiNeuSlepSneu_TD
-  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
-  brcorr      := 1.0/1000.
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 1.0/1000.
+  interpolsize  := 10
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := True
+  excludeDM     := 40
+  binningX      := 25,88.5,712.5
+  binningY      := 17,-12.5,412.5
+  rangeX        := 100,700
+  rangeY        := 0,400
+  rangeZ        := 0.01,2
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow #tilde{#tau}#nu#tilde{#tau}#tau
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow#tau#tilde{#tau})=1, m_{#tilde{#tau}} = 0.5(#tilde{#chi}_{1}^{#pm}+#tilde{#chi}_{2}^{0})
+  diag         +:= 
 ENDDEF
 
 BEGIN::T2tt_SOS

@@ -27,6 +27,7 @@ pr.add_option("--inspect"               , dest="inspect"     , action="store_tru
 pr.add_option("--view"                  , dest="view"        , action="store_true", default=False, help="View what is currently in the pool and bundle repository (AFTER any possible import is done)")
 pr.add_option("-v"                      , dest="verbosity"   , type="int"         , default=1    , help="Verbosity level (0 = nothing, 1 = tiers and jobcontrol, 2 = everything, 3 = debugging [not yet implemented])")
 pr.add_option("-b", "--bundle"          , dest="bundle"      , type="string"      , default=0    , help="Name of the bundle to use")
+pr.add_option("--remark"                , dest="remark"      , type="string"      , default=0    , help="Add a remark to that bundle (something like 'new configuration' or 'test' or whatnot)")
 
 (options, args) = pr.parse_args()
 

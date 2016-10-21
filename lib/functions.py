@@ -60,6 +60,9 @@ def replaceInFile(path, search, replace):
 	f.write(lines)
 	f.close()
 
+def rm(mm, location):
+	cmd(mm, "rm -rf " + location)
+
 def setAttrFromLine(obj, line, separator=":"):
 	sl = [s.strip() for s in line.split(separator)]
 	if sl[1].count(",")>0: setattr(obj, sl[0], sl[1].split(","))
