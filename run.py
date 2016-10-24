@@ -34,7 +34,7 @@ pr.add_option("--remark"                , dest="remark"      , type="string"    
 
 theDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 if not os.path.exists(theDir+"/init"):
-	functions.cmd("touch "+theDir+"/init")
+	functions.cmd(None, "touch "+theDir+"/init")
 
 SPM = master.SPM(args, options)
 
