@@ -41,28 +41,4 @@ SPM = master.SPM(args, options)
 
 
 
-##todo all
-##* verbosity
-##  - quiet, only errors and warnings
-##  - normal, tiers and principal tasks
-##  - instructive, talking about everything it is doing
-##* means to manipulate parameters after every step during inspect option
-##* decouple model and plot default values
-##* splitting of phase space in histo and/or smear step
-##
-##todo plot
-##* check about options for plotting step
-##* variable size top white box depending on the number of shit to be displayed there
-##* position of text lines
-##* nlo-nll exclusion next to legend
-##
-##todo future
-##* automatic optimal mass scan plot binning depending on masses in cards
-##* inspect summary: limit for one mass point or one mass1 value (all lsp masses)
-##* better error of jobs handling
-##* better model handling (=class) in templates?
-## 
-##=> writing of separate text lines (self.model.text is an array)
-
-
 
