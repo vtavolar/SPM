@@ -372,7 +372,7 @@ class BundleHandler():
 		self.master.talk("Doing manual combination.")
 		self.master.addToTalk("Please select manually the packages you wish to combine for this bundle.")
 		self.master.addToTalk("Below you find a list of all available and good packages that can be combined.")
-		self.master.addToTalk(self.pool.view(goodPackages))
+		self.pool.view(goodPackages, False)
 		ids = askForInput(self.master, "Please give a list (separated by the + symbol) of package IDs you wish to combine:")
 		goodIds = [int(i.strip()) for i in ids.split("+")]
 		packages = [p for i, p in enumerate(goodPackages) if i in goodIds]
@@ -396,6 +396,8 @@ class BundleHandler():
 			b.create()
 	def view(self, bundles = [], showDiff = False):
 		if len(bundles)==0: bundles = self.bundles #self.getListOfBundles()
+		if len(bundles)==0: return
+		self.master.talk("Viewing content of the bundledir:")	
 		self.master.addToTalk("ID : Name               : Model                : Packages")
 		for i,b in enumerate(bundles):
 			if not b: continue
@@ -403,8 +405,7 @@ class BundleHandler():
 		if not showDiff: return
 		remaining = filter(lambda b: b not in bundles, self.bundles)
 		if len(remaining)==0: return
-		self.master.addToTalk("")
-		self.master.addToTalk("Following bundles are also present, but cannot be used:")
+		self.master.talk("Following bundles are also present, but cannot be used:")
 		self.master.addToTalk(", ".join([b.name for b in remaining]))
 		if askForInput(self.master, "Do you want to remove these faulty bundles?", ["y", "n"])=="y":
 			theNames = [p.name for p in remaining]

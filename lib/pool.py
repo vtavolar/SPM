@@ -7,7 +7,7 @@ class Package():
 		self.master     = master
 		self.base       = self.master.pooldir
 		self.name       = name
-		self.importdir  = importdir
+		self.importdir  = importdir.rstrip("/") if importdir else importdir
 		self.state      = True
 		self.dir        = self.base +"/"+ self.name
 		self.cardsdir   = self.dir  +"/cards"
@@ -15,13 +15,14 @@ class Package():
 		self.load()
 	def create(self):
 		if not self.importdir: self.master.error("I cannot load detail of the package '"+self.name+"'")
-		mkdir(self.master, self.dir)
+		mkdir(self.master, self.dir     )
 		mkdir(self.master, self.cardsdir)
 		mkdir(self.master, self.filesdir)
 		self.importMe()
 		self.register()
 	def importMe(self):
 		if os.path.exists(self.dir +"/init"): return
+		if not self.importdir: return
 		m = self.importdir.split("/")[-1]
 		self.points = []
 		for point in [l.strip("\n") for l in os.listdir(self.importdir+"/mps")]:
@@ -30,8 +31,7 @@ class Package():
 			if not os.path.exists(self.importdir+"/mps/"+point+"/common/SR.input.root"           ): continue
 			cp(self.master, self.importdir+"/mps/"+point+"/sig_"+m+"_"+point+"/SR.card.txt", self.cardsdir+"/"+point+".txt" )
 			cp(self.master, self.importdir+"/mps/"+point+"/common/SR.input.root"           , self.filesdir+"/"+point+".root")
-			replaceInFile(self.cardsdir+"/"+point+".txt", "../common/SR.input.root", \
-			                                              self.filesdir +"/"+point+".root")
+			replaceInFile(self.cardsdir+"/"+point+".txt", "../common/SR.input.root"        , self.filesdir+"/"+point+".root")
 			self.points.append(point)
 	def load(self):
 		if not os.path.exists(self.dir +"/init"): 
@@ -43,7 +43,7 @@ class Package():
 		sid = self.importdir.split("/")
 		self.init = Init(self, self.dir +"/init")
 		self.init.write({"model":sid[-1], "lumi": sid[-2], "region": sid[-3], "importbase": self.master.options.inputdir, "importdir": self.importdir, "points": ",".join([p for p in self.points])})
-		self.importdir = None
+		#self.importdir = None
 
 class PoolHandler():
 	def __init__(self, master):
@@ -117,18 +117,19 @@ class PoolHandler():
 			if condition(p):
 				newList.append(p)
 		return newList
-	def view(self, packages = [], showDiff = False):
+	def view(self, packages = [], showText = True, showDiff = False):
 		if len(packages)==0: packages = self.getListOfPackages() 
-		print "ID : Name               : Model                : Region               : Lumi       : Importdir"
+		if len(packages)==0: return
+		if showText: self.master.talk("Viewing content of the pool:")
+		self.master.addToTalk("ID : Name               : Model                : Region               : Lumi       : Importdir")
 		for i,p in enumerate(packages):
 			if not p: continue
-			print "%s : %s : %s : %s : %s : %s"%(idString(i,2,True),p.name,idString(p.model,20),idString(p.region,20),idString(p.lumi,10),p.importdir)
+			self.master.addToTalk("%s : %s : %s : %s : %s : %s"%(idString(i,2,True),p.name,idString(p.model,20),idString(p.region,20),idString(p.lumi,10),p.importdir))
 		if not showDiff: return
 		remaining = filter(lambda p: p not in packages, self.packages)
 		if len(remaining)==0: return
-		print ""
-		print "Following packages are also in the pool, but cannot be used:"
-		print ", ".join([p.name for p in remaining])
+		self.master.talk("Following packages are also in the pool, but cannot be used:")
+		self.master.addToTalk(", ".join([p.name for p in remaining]))
 		if askForInput("Do you want to remove these faulty packages?", ["y", "n"])=="y":
 			theNames = [p.name for p in remaining]
 			del remaining # delete any list that contains the pointer before deleting the object

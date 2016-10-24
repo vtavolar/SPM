@@ -27,6 +27,7 @@ class SPM():
 		self.checkCMSSW()
 		self.pool      = PoolHandler(self)
 		self.bundles   = BundleHandler(self)
+		if self.options.view: return
 		self.bundles.collectBundles()
 		self.bundles.runBundles()
 	def addToTalk(self, message):
