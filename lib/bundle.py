@@ -293,12 +293,13 @@ class Bundle():
 		self.init.update("status", "summary")
 		self.inspect("summary")
 	def updatePackages(self):
+		if isinstance(self.packages, basestring): self.packages = [self.packages]
 		if len(self.packages)==0: return
 		if hasattr(self.packages[0],"name"): return
 		ps = self.packages
 		del self.packages
 		self.packages = [self.pool.getPackage(p.strip()) for p in ps]
-		
+
 
 class BundleHandler():
 	def __init__(self, master):
@@ -398,8 +399,6 @@ class BundleHandler():
 		self.master.addToTalk("ID : Name               : Model                : Packages")
 		for i,b in enumerate(bundles):
 			if not b: continue
-			print b.name
-			print b.packages
 			self.master.addToTalk("%s : %s : %s : %s"%(idString(i,2,True),b.name,idString(b.model,20),",".join([p.name for p in b.packages])))
 		if not showDiff: return
 		remaining = filter(lambda b: b not in bundles, self.bundles)

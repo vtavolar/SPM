@@ -266,7 +266,6 @@ class ThePlot():
 		for i,diag in enumerate(self.model.diag):
 			self.drawDiagonal(Entry(diag),i)
 	def drawDiagonal(self, diag, num):
-		print "i am called"
 		xpos, ypos = getDiagPos(self.model, diag, self.plot.histo)
 		diagonal = ROOT.TGraph(2, xpos, ypos)
 		diagonal.SetName("diagonal"+str(num))

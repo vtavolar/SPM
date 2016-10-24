@@ -428,7 +428,7 @@ for f in files:
 		h_lims_mu [lim] = fin.Get(lim+"_mu") ; h_lims_mu [lim].SetDirectory(0)
 		h_lims_mu0[lim] = fin.Get(lim+"_mu0"); h_lims_mu0[lim].SetDirectory(0)
 		# unfortunately, we need to redo the TGraph2D
-		g2_lims_mu[lim] = ROOT.TGraph2D(h_lims_mu0[lim] if model.basis == "mu0" else h_lims_mu[lim])
+		g2_lims_mu[lim] = ROOT.TGraph2D(h_lims_mu[lim] if model.basis == "mu" else h_lims_mu0[lim])
 		g2_lims_mu[lim].SetName("g2_"+lim+"_mu0")
 		g2_lims_mu[lim].SetNpx( int((g2_lims_mu[lim].GetXmax()-g2_lims_mu[lim].GetXmin())/model.interpol) )
 		g2_lims_mu[lim].SetNpy( int((g2_lims_mu[lim].GetYmax()-g2_lims_mu[lim].GetYmin())/model.interpol) )
