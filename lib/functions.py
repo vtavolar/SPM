@@ -23,7 +23,7 @@ def cleandir(mm, path, cpIdx = False):
 	if cpIdx: cp(mm, "/afs/cern.ch/user/g/gpetrucc/php/index.php", path)
 
 def cmd(mm, cmd):
-	mm.talk2(cmd)
+	if mm: mm.talk2(cmd)
 	os.system(cmd)
 
 def cp(mm, location, destination):
