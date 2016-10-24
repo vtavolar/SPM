@@ -586,6 +586,4 @@ plot.prepare()
 plot.draw()
 plot.save()
 
-		## * NLO+NLL exclusion?
-		## * XX,YY values for TMathText
 
