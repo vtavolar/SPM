@@ -255,9 +255,9 @@ class Bundle():
 	def tuneHisto(self):
 		return self.getTuningOptions("histo", ["histoDeltaM", "interpolsize", "paramX", "paramY", "binningX", "binningY"])
 	def tunePlot(self):
-		return self.getTuningOptions("plot" , ["noNllNlo", "rangeX", "rangeY", "smoothCont", "legendX", "legendY", "text", "diag"])
+		return self.getTuningOptions("plot" , ["noNllNlo", "rangeX", "rangeY", "rangeZ", "nDivX", "nDivY", "plane", "smoothCont", "legendX", "legendY", "gr_obs", "gr_op1s", "gr_om1s", "gr_exp", "gr_ep1s", "gr_em1s", "cutGraphsX", "cutGraphsY", "text", "diag"])
 	def tuneSmear(self):
-		return self.getTuningOptions("smear", ["smoothAlgo", "nSmooth"])
+		return self.getTuningOptions("smear", ["preAlgo", "smoothAlgo", "nSmooth", "skipContour", "skipContourSmooth", "basis"])
 	def runLimit(self, point):
 		if not point: return
 		self.master.registerJob(self, "limit_"+point, "limit.sh", {"card": point+".txt", "mass1": point.split("_")[0], "mass2": point.split("_")[1]},False,3)
