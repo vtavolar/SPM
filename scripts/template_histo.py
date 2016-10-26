@@ -195,7 +195,7 @@ def fillBoundaryAlongY(histo, buffer, useLowerEdge = True, slope = 1):
 	return histo
 
 
-def makeHistFromGraph(model, graph, name, deltaM = 0):
+def makeHistFromGraph(model, graph, name, deltaM = 0, theList = None):
 	deltaM  = int(deltaM)
 	npx     = getNbins(graph.GetNpx(), graph.GetXmax()-graph.GetXmin(), model.b1[2]-model.b1[1])
 	npy     = getNbins(graph.GetNpy(), graph.GetYmax()-graph.GetYmin(), model.b2[2]-model.b2[1])
@@ -206,7 +206,6 @@ def makeHistFromGraph(model, graph, name, deltaM = 0):
 	buffer  = graph.GetHistogram()
 	theHist = insertTH2(theHist, buffer, True) # use lower edge of the bin due to offset. CRUCIAL!
 	theHist = fillBoundary(theHist, buffer)
-	#theHist = fillHolesHisto(theHist, deltaM, binsize)
 	return theHist
 
 ##def copyTH2(base, points):
@@ -234,14 +233,16 @@ def getSubset(already, alllimits, deltaM, binningY):
 	subset = fillHolesSubset(subset, deltaM, binningY)
 	return subset
 
-def fillHolesHisto(theHisto, deltaM, binningY):
-	if deltaM==0: return theHisto
+def fillHolesHisto(theHisto, neighborHisto, binningY):
+	if not neighborHisto: return theHisto
 	for xbin in range(1,theHisto.GetXaxis().GetNbins()+1):
-		ybin   = getFirstFilledBinY(theHisto, xbin)
-		yfirst = theHisto.GetYaxis().GetBinCenter(ybin)
-		ydiag  = theHisto.GetXaxis().GetBinCenter(xbin)-deltaM
-		binsToFill = int((ydiag-yfirst)/binningY)
-		print "binsToFill = "+str(binsToFill)
+		ybin    = getFirstFilledBinY(theHisto     , xbin)
+		ybinmax = getLastFilledBinY (neighborHisto, xbin)
+		if ybin == -1: continue
+		yfirst = theHisto.GetYaxis().GetBinLowEdge(ybin)
+		ydiag = neighborHisto.GetYaxis().GetBinLowEdge(ybinmax)
+		binsToFill = int((yfirst-ydiag)/binningY)
+		if binsToFill <= 0: continue
 		value  = theHisto.GetBinContent(xbin,ybin) 
 		for theB in range(1,binsToFill):
 			theHisto.SetBinContent(xbin, ybin-theB, value)
@@ -302,17 +303,28 @@ def getLimitXS ( h_lim_mu, xslist):
 	return h_lim_xs
     
 
-## retrieving limits	
+## reserving buffers
+GraphsMu  = []
+LimitsMu0 = []
+LimitsXs0 = []
+LimitsYn0 = []
+LimitsMu  = []
+LimitsXs  = []
+LimitsYn  = []
+
+
+## loading models and xsec
 model  = Model()
 xslist = XSlist(model)
 
+
+## retrieving limits	
 allpoints = []
 for line in open(summarypath+"/summary","r").readlines():
 	allpoints.append(Limit(xslist, line))
 	
 
 ## splitting phase space according to deltaMs
-
 thePointList = []
 for DM in model.histoDeltaMs:
 	thePointList.append(getSubset(thePointList, allpoints, DM, model.b2))
@@ -322,15 +334,23 @@ for DM in model.histoDeltaMs:
 for idx,points in enumerate(thePointList):
 
 	## reserving dictionaries
-	
-	h_lims_mu0   = {} # limits in signal-strength, original binning
-	h_lims_yn0   = {} # limits in excluded/non-exluded, original binning
-	h_lims_xs0   = {} # limits in cross-section, original binning
-	
-	h_lims_mu    = {} # limits in signal-strength, interpolated
-	h_lims_yn    = {} # limits in excluded/non-exluded, interpolated
-	h_lims_xs    = {} # limits in cross-section, interpolated
-	g2_lims_mu   = {} # TGraph2D limits in signal-strength, automatic interpolation
+	g2_lims_mu = {} 
+	h_lims_mu0 = {} 
+	h_lims_yn0 = {} 
+	h_lims_xs0 = {} 	
+	h_lims_mu  = {} 
+	h_lims_yn  = {} 
+	h_lims_xs  = {} 
+
+
+	## reserving buffer
+	GraphsMu .append({}) # TGraph2D limits in signal-strength, automatic interpolation
+	LimitsMu0.append({}) # limits in signal-strength, original binning
+	LimitsXs0.append({}) # limits in cross-section, original binning
+	LimitsYn0.append({}) # limits in excluded/non-exluded, original binning 
+	LimitsMu .append({}) # limits in signal-strength, interpolated
+	LimitsXs .append({}) # limits in cross-section, interpolated
+	LimitsYn .append({}) # limits in excluded/non-exluded, interpolated
 	
 	
 	## making histograms
@@ -343,8 +363,7 @@ for idx,points in enumerate(thePointList):
 		h_lims_xs0[lim] = h_lims_mu0[lim].Clone(h_lims_mu0[lim].GetName().replace("mu","xs"))
 	
 	
-	## fill histograms
-	
+	## fill histograms	
 	for point in points:
 		for lim in limits:
 			binX=h_lims_mu0[lim].GetXaxis().FindBin(eval(model.param1))
@@ -360,26 +379,45 @@ for idx,points in enumerate(thePointList):
 		g2_lims_mu[lim].SetName("g2_"+lim+"_mu0")
 		g2_lims_mu[lim].SetNpx( int((g2_lims_mu[lim].GetXmax()-g2_lims_mu[lim].GetXmin())/model.interpol) )
 		g2_lims_mu[lim].SetNpy( int((g2_lims_mu[lim].GetYmax()-g2_lims_mu[lim].GetYmin())/model.interpol) )
-		newname = h_lims_mu0[lim].GetName().replace("mu0","mu")
-		h_lims_mu[lim] = makeHistFromGraph(model, g2_lims_mu[lim], newname, model.histoDeltaMs[idx])
-		h_lims_yn[lim] = getLimitYN ( h_lims_mu[lim] )
-		h_lims_xs[lim] = getLimitXS ( h_lims_mu[lim], xslist )
+		newname        = h_lims_mu0[lim].GetName().replace("mu0","mu")
+		neighborList   = thePointList[idx+1] if idx+1<len(thePointList) else None 
+		h_lims_mu[lim] = makeHistFromGraph(model, g2_lims_mu[lim], newname, model.histoDeltaMs[idx], neighborList)
+
+
+	## storing histograms
+	for lim in limits:
+		LimitsMu0[idx][lim] = h_lims_mu0[lim]
+		LimitsXs0[idx][lim] = h_lims_xs0[lim]
+		LimitsYn0[idx][lim] = h_lims_yn0[lim]
+		LimitsMu [idx][lim] = h_lims_mu [lim]
+		GraphsMu [idx][lim] = g2_lims_mu[lim]
+
+
+
+for idx,points in enumerate(thePointList):
+
+
+	## filling holes
+	for lim in limits:
+		npy     = getNbins(GraphsMu[idx][lim].GetNpy(), GraphsMu[idx][lim].GetYmax()-GraphsMu[idx][lim].GetYmin(), model.b2[2]-model.b2[1])
+		binsize = (model.b2[2]-model.b2[1])/npy
+		neighbor = LimitsMu[idx+1][lim] if idx+1 < len(thePointList) else None
+		LimitsMu[idx][lim] = fillHolesHisto(LimitsMu[idx][lim], neighbor, binsize)
+		LimitsYn[idx][lim] = getLimitYN    (LimitsMu[idx][lim]                   )
+		LimitsXs[idx][lim] = getLimitXS    (LimitsMu[idx][lim], xslist           )
 	
 	
 	## saving histograms to disk
-	
 	fout = ROOT.TFile(histopath+"/histo_"+str(idx)+".root", "RECREATE")
 	fout.cd()
-	
 	for lim in limits:    
-		g2_lims_mu[lim].Write()
-		h_lims_mu0[lim].Write()
-		h_lims_xs0[lim].Write()
-		h_lims_yn0[lim].Write()
-		h_lims_mu [lim].Write()
-		h_lims_xs [lim].Write()
-		h_lims_yn [lim].Write()
-	
+		GraphsMu [idx][lim].Write()
+		LimitsMu0[idx][lim].Write()
+		LimitsXs0[idx][lim].Write()
+		LimitsYn0[idx][lim].Write()
+		LimitsMu [idx][lim].Write()
+		LimitsXs [idx][lim].Write()
+		LimitsYn [idx][lim].Write()
 	fout.Close()
 
 

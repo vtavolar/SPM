@@ -28,7 +28,11 @@ BEGIN::TChiNeuWZ
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 0.10099/1000.
   interpolsize  := 5
-  histoDeltaM  +:= 88
+  histoDeltaM  +:= 85
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := False
 #  smoothCont    := True
 #  paramY        := mass1-mass2
   binningX      := 1200,100,700
