@@ -72,6 +72,7 @@ class Graph():
 		self.points = [p] + self.points
 		self.rebuild()
 	def addGraph(self, graph):
+		if not hasattr(self, "points") or not hasattr(graph, "points"): return
 		self.points = self.points + graph.points
 		self.rebuild()
 	def between(self, p, p1, p2):
@@ -120,6 +121,7 @@ class Graph():
 		line2 = self.getFirstLine()
 		return line1.intersect(line2)
 	def intersect(self, theGraph):
+		if not hasattr(self, "points") or not hasattr(theGraph, "points"): return (-1,-1)
 		for iidx1 in range(1,len(self.points)):
 			line1 = self.getLine(iidx1,iidx1-1)
 			for iidx2 in range(1,len(theGraph.points)):
@@ -200,7 +202,9 @@ def connectGraphs(graph1, graph2):
 	#r = makeIntersection (r   , graph1, graph2) 
 		
 def mergeGraphs(graphlist, lim):
-	TG = graphlist[0][lim].g.Clone()
+	TG = None
+	if graphlist[0][lim].g: 
+		TG = graphlist[0][lim].g.Clone()
 	GR = Graph(TG)
 	for i in range(1,len(files)):
 		GR.addGraph(graphlist[i][lim])
@@ -504,8 +508,8 @@ if len(files) > 1:
 	for lim in limits:
 		merged0 = mergeGraphs(theGraphs0, lim)
 		merged1 = mergeGraphs(theGraphs1, lim)
-		merged0.g.Write()
-		merged1.g.Write()
+		if merged0.g: merged0.g.Write()
+		if merged1.g: merged1.g.Write()
 	fout.Close()
 else:
 	print "cp "+smearpath+"/smear_0.root "+smearpath+"/smear_HADD.root"

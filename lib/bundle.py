@@ -15,7 +15,6 @@ class Bundle():
 	def __init__(self, master, name, packages = []):
 		self.status     = "init"
 		self.master     = master
-		self.mode       = Mode(self.master.options.mode)
 		self.base       = self.master.bundledir
 		self.name       = name
 		self.dir        = self.base +"/"+ self.name
@@ -28,10 +27,12 @@ class Bundle():
 		self.smeardir   = self.dir  +"/smear"
 		self.plotdir    = self.dir  +"/plot"
 		self.inspectdir = self.dir  +"/inspect"
-		self.pool       = master.pool
+		self.pool       = self.master.pool
 		self.packages   = packages
 		self.points     = []
-		self.load()
+		if not self.load():
+			self.mode     = self.master.mode
+			self.modeinst = Mode(self.master.mode)
 	def selectPoints(self):
 		self.points = []
 		for point in self.packages[0].points:
@@ -48,7 +49,6 @@ class Bundle():
 		self.histo()
 		self.smear()
 		self.plot()
-		return
 		self.publish()
 	def combine(self):
 		if "combine" in self.master.options.excludeTiers: return
@@ -218,10 +218,11 @@ class Bundle():
 		self.master.clearJobs()
 		self.init.update("status", "limits")
 	def load(self):
-		if not os.path.exists(self.dir +"/init"): return
-		if hasattr(self, "init"): return
+		if not os.path.exists(self.dir +"/init"): return False
+		if hasattr(self, "init"): return False
 		self.init = Init(self, self.dir+"/init")
 		self.updatePackages()
+		return True
 		#if self.init.read("packages").find(",")>-1: ps = self.packages
 		#else: ps = [self.packages]
 		#del self.packages
@@ -245,6 +246,7 @@ class Bundle():
 		if hasattr(self, "init"): return
 		self.init = Init(self, self.dir +"/init") 
 		self.init.write({"model"   : self.master.model.name, \
+		                 "mode"    : self.mode, \
 		                 "lumis"   : ",".join(self.lumis), \
 		                 "regions" : ",".join(self.regions), \
 		                 "packages": ",".join([p.name for p in self.packages]), \
@@ -273,7 +275,7 @@ class Bundle():
 				self.points.append(pp)
 	def smear(self):
 		## add the smoothed graphs to the histograms
-		if self.mode.name == "sens": return
+		if self.mode == "sens": return
 		if "smear" in self.master.options.excludeTiers: return
 		if self.master.options.stopAtTier in ["combine", "limits", "summary", "histo"]: return
 		if not "smear" in self.master.options.redoTiers and self.status in ["smear", "plot"]: return
@@ -383,7 +385,7 @@ class BundleHandler():
 		# do build for all bundles
 		theBundle = None
 		for b in self.bundles:
-			if b.packages == packages:
+			if b.packages == packages and b.mode == self.master.mode:
 				theBundle = b
 		if not theBundle:
 			bname = timestamp(False)

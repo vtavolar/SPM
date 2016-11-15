@@ -14,6 +14,7 @@ class SPM():
 		self.models    = Collection(self.dir +"/env/models")
 		self.model     = self.models.get(args[0])
 		self.model.fillDefaults("model")
+		self.mode      = self.options.mode if self.options.mode else self.model.mode
 		self.srcdir    = self.dir +"/scripts"
 		self.tmpdir    = self.dir +"/tmp"
 		self.jobdir    = self.tmpdir +"/jobcontrol"
@@ -66,6 +67,7 @@ class SPM():
 	def error(self, message):
 		self.talk(message, True)
 	def getModelParam(self, attr):
+		if attr=="mode": return self.mode
 		if hasattr(self.options, attr) and getattr(self.options, attr):
 			return getattr(self.options, attr, "")
 		if isinstance(getattr(self.model, attr),(int,float)):
@@ -99,7 +101,7 @@ class SPM():
 			job.run()
 	def talk(self, message, isError=False, doBreak=False):
 		if self.verbosity < 1 and not isError: return
-		print ""
+		#print ""
 		if isError:
 			print "ERROR: "+message
 			print "Aborting..."

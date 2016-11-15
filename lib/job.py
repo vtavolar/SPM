@@ -51,7 +51,7 @@ class Job():
 			line=line.replace("[HISTO]"      , self.bundle.histodir                                     )
 			line=line.replace("[SMEAR]"      , self.bundle.smeardir                                     )
 			line=line.replace("[PLOT]"       , self.bundle.plotdir                                      )
-			line=line.replace("[CMD]"        , self.bundle.mode.limitCmd                                )
+			line=line.replace("[CMD]"        , self.bundle.modeinst.limitCmd                            )
 			line=line.replace("[EXTS]"       , self.master.options.plotExt                              )
 			line=line.replace("[PRELIMINARY]", self.master.options.preliminary                          )
 			line=line.replace("[LUMIS]"      , ",".join("'"+l+"'" for l in self.bundle.lumis)           )

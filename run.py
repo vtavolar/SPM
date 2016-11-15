@@ -19,7 +19,7 @@ pr.add_option("--ap", "--addPackages"   , dest="addPackages" , action="append"  
 pr.add_option("-X", "--excludeTiers"    , dest="excludeTiers", action="append"    , default=[]   , help="Tiers to exclude")
 pr.add_option("-R", "--redoTiers"       , dest="redoTiers"   , action="append"    , default=[]   , help="Tiers to redo")
 pr.add_option("-S", "--stopAtTier"      , dest="stopAtTier"  , type="string"      , default=None , help="Stop execution after running this tier")
-pr.add_option("-M", "--mode"            , dest="mode"        , type="string"      , default="xsec", help="Give the name of the plot mode that you want to use, i.e. 'xsec' for 0.95 CL upper limit on cross section (default), 'sens' for sensitivity, 'braz' for brazilian flag plot (not yet implemented)")
+pr.add_option("-M", "--mode"            , dest="mode"        , type="string"      , default=None , help="Give the name of the plot mode that you want to use, i.e. 'xsec' for 0.95 CL upper limit on cross section (default), 'sens' for sensitivity, 'braz' for brazilian flag plot (not yet implemented). Default is the value of the module, else use 'xsec'")
 pr.add_option("--qall"                  , dest="qall"        , action="store_true", default=False, help="Run EVERYTHING on the batch system (also summary, histo, smear and plot tier)")
 pr.add_option("--ext"                   , dest="plotExt"     , type="string"      , default="C,pdf,root", help="File extensions to save the final plot in (default: pdf, root, C)")
 pr.add_option("-e", "--energy"          , dest="energy"      , type="string"      , default="13"        , help="Center-of-mass energy in TeV")

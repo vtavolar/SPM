@@ -28,7 +28,7 @@ class Package():
 		for point in [l.strip("\n") for l in os.listdir(self.importdir+"/mps")]:
 			if not os.path.isdir (self.importdir+"/mps/"+point                                   ): continue
 			if not os.path.exists(self.importdir+"/mps/"+point+"/sig_"+m+"_"+point+"/SR.card.txt"): continue
-			if not os.path.exists(self.importdir+"/mps/"+point+"/common/SR.input.root"           ): continue
+			#if not os.path.exists(self.importdir+"/mps/"+point+"/common/SR.input.root"           ): continue
 			cp(self.master, self.importdir+"/mps/"+point+"/sig_"+m+"_"+point+"/SR.card.txt", self.cardsdir+"/"+point+".txt" )
 			cp(self.master, self.importdir+"/mps/"+point+"/common/SR.input.root"           , self.filesdir+"/"+point+".root")
 			replaceInFile(self.cardsdir+"/"+point+".txt", "../common/SR.input.root"        , self.filesdir+"/"+point+".root")
