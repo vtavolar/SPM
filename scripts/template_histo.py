@@ -5,7 +5,10 @@ import ROOT, array, os, sys
 histopath    = "[HISTO]"
 summarypath  = "[SUMMARY]"
 spmpath      = "[SPMDIR]"
+plotmode     = "[PLOTMODE]"
+mass2        = float("[BRAZMASS2]")
 
+slimModes    = ["braz"]
 limits       = ["obs", "exp", "ep1s", "em1s", "ep2s", "em2s", "op1s", "om1s"]
 
 class Model():
@@ -301,6 +304,11 @@ def getLimitXS ( h_lim_mu, xslist):
 			r  = h_lim_xs.GetBinContent(ix,iy)
 			h_lim_xs.SetBinContent(ix, iy, r*xs)
 	return h_lim_xs
+
+def passM2Cut(plotmode, mass2, limit):
+	if not plotmode=="braz": return True
+	if limit.mass2 == mass2: return True	
+	return False
     
 
 ## reserving buffers
@@ -321,8 +329,12 @@ xslist = XSlist(model)
 ## retrieving limits	
 allpoints = []
 for line in open(summarypath+"/summary","r").readlines():
+	limit = Limit(xslist, line)
+	if not passM2Cut(plotmode, mass2, limit):
+		del limit
+		continue
 	allpoints.append(Limit(xslist, line))
-	
+
 
 ## splitting phase space according to deltaMs
 thePointList = []
@@ -356,7 +368,7 @@ for idx,points in enumerate(thePointList):
 	## making histograms
 	
 	for lim in limits:
-		h_lims_mu0[lim] = ROOT.TH2F(lim+"_mu0", model.name, model.b1[0], model.b1[1], model.b1[2], model.b2[0], model.b2[1], model.b2[2])
+		h_lims_mu0[lim] = ROOT.TH2F(lim+str(idx)+"_mu0", model.name, model.b1[0], model.b1[1], model.b1[2], model.b2[0], model.b2[1], model.b2[2])
 		h_lims_mu0[lim].SetXTitle("massX")    
 		h_lims_mu0[lim].SetYTitle("massY")
 		h_lims_yn0[lim] = h_lims_mu0[lim].Clone(h_lims_mu0[lim].GetName().replace("mu","yn"))
@@ -371,12 +383,23 @@ for idx,points in enumerate(thePointList):
 			h_lims_mu0[lim].SetBinContent(binX, binY, getattr(point, lim))
 			h_lims_xs0[lim].SetBinContent(binX, binY, getattr(point, lim)*xslist.getXS(point.mass1))
 			h_lims_yn0[lim].SetBinContent(binX, binY, 1 if getattr(point, lim)<1 else 1e-3)
-	
+
+
+	## storing histograms
+	for lim in limits:
+		LimitsMu0[idx][lim] = h_lims_mu0[lim]
+		LimitsXs0[idx][lim] = h_lims_xs0[lim]
+		LimitsYn0[idx][lim] = h_lims_yn0[lim]
+
+
+	## do not do interpolation for all plotmodes
+	if plotmode in slimModes: continue
+
 	
 	## interpolating
 	for lim in limits:
 		g2_lims_mu[lim] = ROOT.TGraph2D(h_lims_mu0[lim])
-		g2_lims_mu[lim].SetName("g2_"+lim+"_mu0")
+		g2_lims_mu[lim].SetName("g2_"+lim+str(idx)+"_mu0")
 		g2_lims_mu[lim].SetNpx( int((g2_lims_mu[lim].GetXmax()-g2_lims_mu[lim].GetXmin())/model.interpol) )
 		g2_lims_mu[lim].SetNpy( int((g2_lims_mu[lim].GetYmax()-g2_lims_mu[lim].GetYmin())/model.interpol) )
 		newname        = h_lims_mu0[lim].GetName().replace("mu0","mu")
@@ -386,35 +409,39 @@ for idx,points in enumerate(thePointList):
 
 	## storing histograms
 	for lim in limits:
-		LimitsMu0[idx][lim] = h_lims_mu0[lim]
-		LimitsXs0[idx][lim] = h_lims_xs0[lim]
-		LimitsYn0[idx][lim] = h_lims_yn0[lim]
 		LimitsMu [idx][lim] = h_lims_mu [lim]
 		GraphsMu [idx][lim] = g2_lims_mu[lim]
 
 
-
-for idx,points in enumerate(thePointList):
-
-
-	## filling holes
-	for lim in limits:
-		npy     = getNbins(GraphsMu[idx][lim].GetNpy(), GraphsMu[idx][lim].GetYmax()-GraphsMu[idx][lim].GetYmin(), model.b2[2]-model.b2[1])
-		binsize = (model.b2[2]-model.b2[1])/npy
-		neighbor = LimitsMu[idx+1][lim] if idx+1 < len(thePointList) else None
-		LimitsMu[idx][lim] = fillHolesHisto(LimitsMu[idx][lim], neighbor, binsize)
-		LimitsYn[idx][lim] = getLimitYN    (LimitsMu[idx][lim]                   )
-		LimitsXs[idx][lim] = getLimitXS    (LimitsMu[idx][lim], xslist           )
+## fill holes
+if not plotmode in slimModes:
+	for idx,points in enumerate(thePointList):
+		for lim in limits:
+			npy     = getNbins(GraphsMu[idx][lim].GetNpy(), GraphsMu[idx][lim].GetYmax()-GraphsMu[idx][lim].GetYmin(), model.b2[2]-model.b2[1])
+			binsize = (model.b2[2]-model.b2[1])/npy
+			neighbor = LimitsMu[idx+1][lim] if idx+1 < len(thePointList) else None
+			LimitsMu[idx][lim] = fillHolesHisto(LimitsMu[idx][lim], neighbor, binsize)
+			LimitsYn[idx][lim] = getLimitYN    (LimitsMu[idx][lim]                   )
+			LimitsXs[idx][lim] = getLimitXS    (LimitsMu[idx][lim], xslist           )
 	
 	
-	## saving histograms to disk
+## saving histograms to disk
+for idx, points in enumerate(thePointList):
 	fout = ROOT.TFile(histopath+"/histo_"+str(idx)+".root", "RECREATE")
 	fout.cd()
 	for lim in limits:    
-		GraphsMu [idx][lim].Write()
+		LimitsMu0[idx][lim].SetName(lim+"_mu0")
+		LimitsXs0[idx][lim].SetName(lim+"_xs0")
+		LimitsYn0[idx][lim].SetName(lim+"_yn0")
 		LimitsMu0[idx][lim].Write()
 		LimitsXs0[idx][lim].Write()
 		LimitsYn0[idx][lim].Write()
+		if plotmode in slimModes: continue
+		GraphsMu [idx][lim].SetName("g2_"+lim+"_mu0")
+		GraphsMu [idx][lim].Write()
+		LimitsMu [idx][lim].SetName(lim+"_mu")
+		LimitsXs [idx][lim].SetName(lim+"_xs")
+		LimitsYn [idx][lim].SetName(lim+"_yn")
 		LimitsMu [idx][lim].Write()
 		LimitsXs [idx][lim].Write()
 		LimitsYn [idx][lim].Write()

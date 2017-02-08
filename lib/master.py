@@ -63,7 +63,7 @@ class SPM():
 		self.jobs = []
 		self.jobcount = -1
 		cleandir(self, self.jobdir)
-		cleandir(self, self.cmssw +"/SPM")
+		#cleandir(self, self.cmssw +"/SPM")
 	def error(self, message):
 		self.talk(message, True)
 	def getModelParam(self, attr):

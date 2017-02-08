@@ -145,6 +145,34 @@ def CMS_lumi(pad,  iPeriod,  iPosX, aLittleExtra = 0.09):
 def color(colorname):
 	return eval("ROOT."+colorname)
 
+def createGraph(histo2d):
+	h1d    = histo2d.ProjectionX()
+	bins   = [b for b in range(1, h1d.GetXaxis().GetNbins()+1) if h1d.GetBinContent(b)>0]
+	masses = [h1d.GetBinCenter (b) for b in bins]
+	limits = [h1d.GetBinContent(b) for b in bins]
+	graph  = ROOT.TGraph(len(masses), array('d', masses), array('d', limits))
+	return graph
+
+def createSigmaBand(plus, minus):
+	## build one graph summing the + and - 1 sigma
+	if not plus or not minus: return None
+	nP = plus .GetN()
+	nM = minus.GetN()
+	sigmaBandX = []
+	sigmaBandY = []
+	for i in range(0,nP):
+		sigmaBandX.append(ROOT.Double(0.))
+		sigmaBandY.append(ROOT.Double(0.))
+		plus.GetPoint(i, sigmaBandX[i], sigmaBandY[i])
+	for i in range(0,nM):
+		sigmaBandX.append(ROOT.Double(0.))
+		sigmaBandY.append(ROOT.Double(0.))
+	for i in range(0,nM):
+		minus.GetPoint(i, sigmaBandX[nP+nM-i-1], sigmaBandY[nP+nM-i-1])
+	theGraph = ROOT.TGraph(nP+nM, array('d', sigmaBandX), array('d', sigmaBandY))
+	theGraph.SetFillStyle(3001)
+	return theGraph
+
 def getBinning(binning):
 	if "[" in binning:
 		b1 = [float(b) for b in binning.rstrip("]").lstrip("[").split(",")]
@@ -180,6 +208,28 @@ def getDiagPos(model, diag, hist):
 		ypos[1] = xpos[1] - float(diag.offset)
 	return array('d',xpos), array('d',ypos)
 
+def getGraphsMax(theGraph):
+	theMax = 0
+	if theGraph.nominal and max(getYs(theGraph.nominal)) > theMax: theMax = max(getYs(theGraph.nominal))
+	if theGraph.plus    and max(getYs(theGraph.plus   )) > theMax: theMax = max(getYs(theGraph.plus   ))
+	if theGraph.minus   and max(getYs(theGraph.minus  )) > theMax: theMax = max(getYs(theGraph.minus  ))
+	if theGraph.plus2   and max(getYs(theGraph.plus2  )) > theMax: theMax = max(getYs(theGraph.plus2  ))
+	if theGraph.minus2  and max(getYs(theGraph.minus2 )) > theMax: theMax = max(getYs(theGraph.minus2 ))
+	return theMax
+
+def getGraphsMin(theGraph):
+	theMin = 9999999999
+	if theGraph.nominal and min(getYs(theGraph.nominal)) < theMin: theMin = min(getYs(theGraph.nominal))
+	if theGraph.plus    and min(getYs(theGraph.plus   )) < theMin: theMin = min(getYs(theGraph.plus   ))
+	if theGraph.minus   and min(getYs(theGraph.minus  )) < theMin: theMin = min(getYs(theGraph.minus  ))
+	if theGraph.plus2   and min(getYs(theGraph.plus2  )) < theMin: theMin = min(getYs(theGraph.plus2  ))
+	if theGraph.minus2  and min(getYs(theGraph.minus2 )) < theMin: theMin = min(getYs(theGraph.minus2 ))
+	return theMin
+
+def getYs(tGraph):
+	bare = [float(tGraph.GetY()[i]) for i in range(tGraph.GetN())]
+	return [b if b > 0.00000000001 and b < 9999999999 else 0. for b in bare]
+
 class Entry():
 	def __init__(self, line):
 		line = line.strip()
@@ -190,17 +240,29 @@ class Entry():
 			setattr(self, e[0], e[1])
 
 class Graph():
-	def __init__(self, tfile, nominal, plus, minus, linecolor, areacolor):
+	def __init__(self, tfile, nominal, plus, minus, linecolor=ROOT.kBlack, areacolor=ROOT.kBlack, plus2 = None, minus2 = None, create = False):
+		self.linecolor = linecolor
+		self.areacolor = areacolor
+		if create: 
+			self.create(tfile, nominal, plus, minus, plus2, minus2)
+			return
 		self.nominal   = tfile.Get(nominal)##; self.nominal.SetDirectory(0)
 		self.plus      = tfile.Get(plus   )##; self.plus   .SetDirectory(0)
 		self.minus     = tfile.Get(minus  )##; self.minus  .SetDirectory(0)
-		self.linecolor = linecolor
-		self.areacolor = areacolor
+		self.plus2     = tfile.Get(plus2  ) if plus2  else None
+		self.minus2    = tfile.Get(minus2 ) if minus2 else None
+	def create(self, tfile, nominal, plus, minus, plus2, minus2):
+		## in case there is a histogram that first needs to extract a TGraph
+		self.nominal = createGraph(tfile.Get(nominal))
+		self.plus    = createGraph(tfile.Get(plus   ))
+		self.minus   = createGraph(tfile.Get(minus  ))
+		self.plus2   = createGraph(tfile.Get(plus2  )) if plus2  else None
+		self.minus2  = createGraph(tfile.Get(minus2 )) if minus2 else None
 
 class Model():
 	def __init__(self):
 		self.name       = "[MODEL:name]"
-		self.mode       = "[MODEL:mode]"
+		self.mode       = "[PLOTMODE]"
 		self.plane      = "[MODEL:plane]"
 		self.deltaM     = float("[MODEL:deltaM]") if "[MODEL:deltaM]" else 1
 		self.isNloNll   = ("[MODEL:noNllNlo]"!="True")
@@ -237,12 +299,13 @@ class ThePlot():
 		self.ymax = float(b2[-1]); self.ymin = float(b2[0])
 		if   self.model.mode == "xsec": self.plot = XSecPlot(self, model, histopath, smearpath)
 		elif self.model.mode == "sens": self.plot = SensPlot(self, model, histopath, smearpath)
-		#elif self.model.mode == "braz": self.plot = BrazPlot(self, model, histopath, smearpath)
+		elif self.model.mode == "braz": self.plot = BrazPlot(self, model, histopath, smearpath)
 	def prepare(self):
-		self.plot.xsec .GetXaxis().SetRangeUser(self.model.rangeX[0], self.model.rangeX[1])
-		self.plot.xsec .GetYaxis().SetRangeUser(self.model.rangeY[0], self.model.rangeY[1])
 		self.plot.histo.Draw()
-		self.plot.xsec.Draw("colzsame")
+		if hasattr(self.plot, "xsec"):
+			self.plot.xsec .GetXaxis().SetRangeUser(self.model.rangeX[0], self.model.rangeX[1])
+			self.plot.xsec .GetYaxis().SetRangeUser(self.model.rangeY[0], self.model.rangeY[1])
+			self.plot.xsec.Draw("colzsame")
 		self.setStyle()
 		self.plot.setStyle()
 	def draw(self):
@@ -575,6 +638,157 @@ class SensPlot():
 		textCOLZ.SetTextAngle(90)
 		textCOLZ.Draw()
 		self.c.textCOLZ = textCOLZ
+
+
+class BrazPlot():
+	def __init__(self, parent, model, histopath, smearpath):
+		self.nLegend = 2 # entries of the legend (needed for white box size)
+		self.parent  = parent
+		self.model   = model
+		self.c       = self.parent.c
+		fin          = ROOT.TFile(histopath, "READ")
+		self.exp     = Graph(fin, "exp_xs0", "ep1s_xs0", "em1s_xs0", plus2="ep2s_xs0", minus2="em2s_xs0", create=True)
+		self.obs     = Graph(fin, "obs_xs0", "op1s_xs0", "om1s_xs0", create=True)
+		fin.Close()
+		self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, self.model.rangeY[0], self.model.rangeY[1])
+		#self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, 0.0, 2.0*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
+		#self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, 0.0*min([getGraphsMin(self.obs), getGraphsMin(self.exp)]), 2.0*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
+		self.parent.ymax = self.histo.GetYaxis().GetXmax()
+		self.parent.ymin = self.histo.GetYaxis().GetXmin()
+	def setStyle(self):
+		self.histo.GetYaxis().SetTitle("95% C.L. upper limit on cross section [pb]")
+		self.c.SetRightMargin(0.08)
+		self.c.cd()
+		self.histo.Draw()
+		ROOT.gPad.Update()
+	def draw(self):
+		self.drawHisto()
+		self.drawContours()
+		self.parent.drawText() 
+		self.drawLegend() 
+	def drawContours(self):
+		# observed
+		if self.obs.nominal:
+			self.obs.nominal.SetLineColor(self.obs.linecolor)
+			self.obs.nominal.SetLineStyle(1)
+			self.obs.nominal.SetLineWidth(4)
+		# observed + 1sigma
+		if self.obs.plus:
+			self.obs.plus.SetLineColor(self.obs.linecolor)
+			self.obs.plus.SetLineStyle(1)
+			self.obs.plus.SetLineWidth(2)
+		# observed - 1sigma
+		if self.obs.minus:
+			self.obs.minus.SetLineColor(self.obs.linecolor)
+			self.obs.minus.SetLineStyle(1)
+			self.obs.minus.SetLineWidth(2)
+		# expected
+		if self.exp.nominal:
+			self.exp.nominal.SetLineColor(self.exp.linecolor)
+			self.exp.nominal.SetLineStyle(2)
+			self.exp.nominal.SetLineWidth(4)
+		self.band1s = createSigmaBand(self.exp.plus , self.exp.minus )
+		self.band2s = createSigmaBand(self.exp.plus2, self.exp.minus2)
+		self.band2s.SetFillColor(ROOT.kYellow) # FIXME: configurable?
+		self.band1s.SetFillColor(ROOT.kGreen )
+		# DRAW LINES
+		if self.band2s     : self.band2s     .Draw("FSAME")
+		if self.band1s     : self.band1s     .Draw("FSAME")
+		if self.exp.nominal: self.exp.nominal.Draw("LSAME")
+		if self.obs.nominal: self.obs.nominal.Draw("LSAME")
+		if self.obs.plus   : self.obs.plus   .Draw("LSAME")
+		if self.obs.minus  : self.obs.minus  .Draw("LSAME")
+	def drawHisto(self):
+		#self.histo.SetMaximum(1.5*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
+		#self.histo.SetMinimum(0.7*min([getGraphsMin(self.obs), getGraphsMin(self.exp)]))
+		#print 0.7*min([getGraphsMin(self.obs), getGraphsMin(self.exp)])
+		#print 1.5*max([getGraphsMax(self.obs), getGraphsMax(self.exp)])
+		#self.histo.GetYaxis().SetRangeUser(0.7*min([getGraphsMin(self.obs), getGraphsMin(self.exp)]), \
+		#                                   1.5*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
+		self.histo.SetMaximum(self.parent.ymax)
+		self.histo.SetMinimum(self.parent.ymin)
+		self.c.SetLogy()
+		self.histo.Draw() 
+	def drawLegend(self):
+		nText=len(self.model.text)
+		xRange = self.parent.xmax-self.parent.xmin
+		yRange = self.parent.ymax-self.parent.ymin
+		LObsP = ROOT.TGraph(2)
+		LObsP.SetName("LObsP")
+		LObsP.SetTitle("LObsP")
+		LObsP.SetLineColor(self.obs.linecolor)
+		LObsP.SetLineStyle(1)
+		LObsP.SetLineWidth(2)
+		LObsP.SetMarkerStyle(20)
+		LObsP.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(0.35+0.75*nText)*yRange/100*10)
+		LObsP.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(0.35+0.75*nText)*yRange/100*10)
+		LObs = ROOT.TGraph(2)
+		LObs.SetName("LObs")
+		LObs.SetTitle("LObs")
+		LObs.SetLineColor(self.obs.linecolor)
+		LObs.SetLineStyle(1)
+		LObs.SetLineWidth(4)
+		LObs.SetMarkerStyle(20)
+		LObs.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(0.50+0.75*nText)*yRange/100*10)
+		LObs.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(0.50+0.75*nText)*yRange/100*10)
+		LObsM = ROOT.TGraph(2)
+		LObsM.SetName("LObsM")
+		LObsM.SetTitle("LObsM")
+		LObsM.SetLineColor(self.obs.linecolor)
+		LObsM.SetLineStyle(1)
+		LObsM.SetLineWidth(2)
+		LObsM.SetMarkerStyle(20)
+		LObsM.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(0.65+0.75*nText)*yRange/100*10)
+		LObsM.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(0.65+0.75*nText)*yRange/100*10)
+		textObs = ROOT.TLatex(self.parent.xmin+11*xRange/100, self.parent.ymax-(0.65+0.75*nText)*yRange/100*10, "Observed #pm 1 #sigma_{theory}")
+		textObs.SetTextFont(42)
+		textObs.SetTextSize(0.040)
+		textObs.Draw()
+		self.c.textObs = textObs
+		LExp = ROOT.TGraph(2)
+		LExp.SetName("LExp")
+		LExp.SetTitle("LExp")
+		LExp.SetLineColor(self.exp.linecolor)
+		LExp.SetLineStyle(7)
+		LExp.SetLineWidth(4)
+		LExp.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.15+0.75*nText)*yRange/100*10)
+		LExp.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.15+0.75*nText)*yRange/100*10)
+		LExp1S = ROOT.TGraph(4)
+		LExp1S.SetName("LExp1S")  
+		LExp1S.SetTitle("LExp1S")  
+		LExp1S.SetFillColor(ROOT.kGreen) ## FIXME: configurable?
+		LExp1S.SetLineStyle(3)
+		LExp1S.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.05+0.75*nText)*yRange/100*10)
+		LExp1S.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.05+0.75*nText)*yRange/100*10)
+		LExp1S.SetPoint(2, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.25+0.75*nText)*yRange/100*10)
+		LExp1S.SetPoint(3, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.25+0.75*nText)*yRange/100*10)
+		LExp2S = ROOT.TGraph(4)
+		LExp2S.SetName("LExp2S")  
+		LExp2S.SetTitle("LExp2S")  
+		LExp2S.SetFillColor(ROOT.kYellow) ## FIXME: configurable?
+		LExp2S.SetLineStyle(3)
+		LExp2S.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.00+0.75*nText)*yRange/100*10)
+		LExp2S.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.00+0.75*nText)*yRange/100*10)
+		LExp2S.SetPoint(2, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.30+0.75*nText)*yRange/100*10)
+		LExp2S.SetPoint(3, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.30+0.75*nText)*yRange/100*10)
+		textExp = ROOT.TLatex(self.parent.xmin+11*xRange/100, self.parent.ymax-(1.30+0.75*nText)*yRange/100*10, "Expected #pm 1(2) #sigma_{experiment}")
+		textExp.SetTextFont(42)
+		textExp.SetTextSize(0.040)
+		textExp.Draw()
+		self.c.textExp = textExp
+		LObs  .Draw("LSAME")
+		LObsM .Draw("LSAME")
+		LObsP .Draw("LSAME")
+		LExp2S.Draw("FSAME")
+		LExp1S.Draw("FSAME")
+		LExp  .Draw("LSAME")
+		self.c.LObs   = LObs
+		self.c.LObsM  = LObsM
+		self.c.LObsP  = LObsP
+		self.c.LExp   = LExp
+		self.c.LExp1S = LExp1S
+		self.c.LExp2S = LExp2S
+
 
 
 

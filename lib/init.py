@@ -8,10 +8,11 @@ class Init():
 		self.mm   = obj.master if hasattr(obj, "master") else obj
 		self.path = path
 		self.load()
-	def append(self, key, value):
+	def append(self, key, value, isList=False):
 		if not self.importdir: return
 		f = open(self.path, "a")
-		f.write(key +" : "+ value +"\n")
+		add = "+" if isList else ""
+		f.write(key +add+" : "+ value +"\n")
 		f.close()
 	def load(self):
 		if not os.path.exists(self.path): return

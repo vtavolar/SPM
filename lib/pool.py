@@ -41,8 +41,10 @@ class Package():
 	def register(self):
 		if not self.importdir: return
 		sid = self.importdir.split("/")
+		print self.points
 		self.init = Init(self, self.dir +"/init")
-		self.init.write({"model":sid[-1], "lumi": sid[-2], "region": sid[-3], "importbase": self.master.options.inputdir, "importdir": self.importdir, "points": ",".join([p for p in self.points])})
+		self.init.write({"model":sid[-1], "lumi": sid[-2], "region": sid[-3], "importbase": self.master.options.inputdir, "importdir": self.importdir, "points+": ",".join([p for p in self.points])})
+		print self.points
 		#self.importdir = None
 
 class PoolHandler():

@@ -65,8 +65,11 @@ def rm(mm, location):
 
 def setAttrFromLine(obj, line, separator=":"):
 	sl = [s.strip() for s in line.split(separator)]
-	if sl[1].count(",")>0: setattr(obj, sl[0], sl[1].split(","))
-	else                 : setattr(obj, sl[0], sl[1]           )
+	isList = "+" in sl[0]
+	key    = sl[0].strip("+")
+	if sl[1].count(",")>0: setattr(obj, key, sl[1].split(","))
+	elif isList          : setattr(obj, key, [sl[1]]         )
+	else                 : setattr(obj, key, sl[1]           )
 
 def timestamp(readable = True):
 	if readable:

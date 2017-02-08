@@ -1,4 +1,4 @@
-BEGIN::TChiNeuWH
+BEGIN::TChiWH
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 0.03634/1000.
   mode          := xsec
@@ -24,33 +24,33 @@ BEGIN::TChiNeuWH
   diag         +:= offset=125 
 ENDDEF
 
-BEGIN::TChiNeuWZ
+BEGIN::TChiWZ
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 0.10099/1000.
   interpolsize  := 5
-  histoDeltaM  +:= 85
+  histoDeltaM  +:= 88
   preAlgo       := k5a
   smoothAlgo    := kba
   nSmooth       := 6
   smoothCont    := False
-#  smoothCont    := True
-#  paramY        := mass1-mass2
   binningX      := 1200,100,700
   binningY      := 80,0,400
-#  binningX      := 24,100,700
-#  binningY      := 40,0,400
-  rangeX        := 100,500
-  rangeY        := 0,350
+  plane               := obs_xs
+#  skipContour        +:= obs;op1s;om1s
+#  skipContourSmooth  +:= obs;op1s;om1s
+  rangeX        := 100,600
+  rangeY        := 0,300
+  rangeZ        := 0.001,2
   legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
   nDivX         := 205
   nDivY         := 205
   text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
-  diag         +:= 
+  diag         +:= offset=85
 ENDDEF
 
 BEGIN::TChiNeuWZ_SOS
-  xsecfile    := susy-interface/scan/xsec/xsec_ChiNeu.txt
+  xsecfile    := xsec/xsec_ChiNeu.txt
   brcorr      := 0.10099/1000.
 #  binningX      := 24,87.5,687.5
 #  binningY      := 30,-5,395
@@ -58,23 +58,52 @@ BEGIN::TChiNeuWZ_SOS
 #  rangeY        := -5,345
 ENDDEF
 
-BEGIN::TChiNeuSlepSneu_FD
-  xsecfile      := susy-interface/scan/xsec/xsec_ChiNeu.txt
-  brcorr        := 0.5/1000.
-  preAlgo       := k5a
-  smoothAlgo    := kba
-  nSmooth       := 6
-  smoothCont    := True
-  binningX      := 45,87.5,1212.5
-  binningY      := 37,-12.5,912.5 
-  interpolsize  := 5
-  rangeX        := 100,1200
-  rangeY        := 0,900
-  rangeZ        := 0.0001,2
+BEGIN::TChiSlepSnu_FD
+  xsecfile            := xsec/xsec_ChiNeu.txt
+  brcorr              := 0.5/1000.
+  preAlgo             := k5a
+  smoothAlgo          := kba
+  nSmooth             := 6
+  smoothCont          := True
+  binningX            := 45,87.5,1212.5
+  binningY            := 37,-12.5,912.5 
+  interpolsize        := 5
+  rangeX              := 100,1200
+  rangeY              := 0,1100
+  rangeZ              := 0.0001,2
+  nDivX               := 505
+  nDivY               := 505
+  basis               := mu0
+  plane               := obs_xs
+#  skipContour        +:= obs;op1s;om1s
+#  skipContourSmooth  +:= obs;op1s;om1s
+  legendX             := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY             := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  text               +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
+  text               +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}})
 ENDDEF
 
-BEGIN::TChiNeuSlepSneu_05
-  xsecfile      := susy-interface/scan/xsec/xsec_ChiNeu.txt
+#BEGIN::TChiNeuSlepSneu_FD
+#  xsecfile      := xsec/xsec_ChiNeu.txt
+#  brcorr        := 0.5/1000.
+#  preAlgo       := k5a
+#  smoothAlgo    := kba
+#  nSmooth       := 6
+#  smoothCont    := True
+#  binningX      := 45,87.5,1212.5
+#  binningY      := 37,-12.5,912.5 
+#  interpolsize  := 5
+#  rangeX        := 100,1200
+#  rangeY        := 0,900
+#  rangeZ        := 0.0001,2
+#  legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
+#  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
+#  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}})
+#ENDDEF
+
+BEGIN::TChiSlepSnu_FD_05
+  xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 0.5/1000.
   preAlgo       := k5a
   smoothAlgo    := kba
@@ -86,11 +115,13 @@ BEGIN::TChiNeuSlepSneu_05
   rangeX        := 100,1200
   rangeY        := 0,900
   rangeZ        := 0.0001,2
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
   text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
-  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}}
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}})
 ENDDEF
 
-BEGIN::TChiNeuSlepSneu_TD
+BEGIN::TChiSlepSnu_TD
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 1.0/1000.
   interpolsize  := 10
@@ -116,4 +147,29 @@ ENDDEF
 BEGIN::T2tt_SOS
   xsecfile    := susy-interface/scan/xsec/xsec_T2tt.txt
   brcorr      := 0.105/1000.
+ENDDEF
+
+BEGIN::TChiZZ4L
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 0.10099*0.10099/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,100,1025
+  #rangeY        := 0.001,2
+  rangeY        := 0.0001,10
+  rangeX        := 100,1000
+ENDDEF
+
+BEGIN::TChiHZ
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 0.10099*0.3040/1000
+  mode          := braz
+  binningX      := 9,112.5,337,5
+ENDDEF
+
+BEGIN::TChiHH
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 0.3040*0.3040/1000
+  mode          := braz
+  binningX      := 9,112.5,337,5
 ENDDEF

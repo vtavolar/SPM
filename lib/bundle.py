@@ -4,12 +4,15 @@ from functions import *
 
 class Mode():
 	def __init__(self, name):
-		self.name = name
-		self.limitCmd = "-M Asymptotic"
+		self.name         = name
+		self.limitCmd     = "-M Asymptotic"
+		self.excludeTiers = []
 		if self.name == "sens":
-			self.limitCmd = "-M ProfileLikelihood  --uncapped 1 --significance -rMin -5"
+			self.limitCmd     = "-M ProfileLikelihood  --uncapped 1 --significance -rMin -5"
+			self.excludeTiers = ["smear"]
 		elif self.name == "braz":
-			self.limitCmd = ""
+			self.limitCmd     = "-M Asymptotic"
+			self.excludeTiers = ["smear"]
 
 class Bundle():
 	def __init__(self, master, name, packages = []):
@@ -33,6 +36,7 @@ class Bundle():
 		if not self.load():
 			self.mode     = self.master.mode
 			self.modeinst = Mode(self.master.mode)
+			self.mass2    = float(self.master.options.mass2)
 	def selectPoints(self):
 		self.points = []
 		for point in self.packages[0].points:
@@ -40,7 +44,10 @@ class Bundle():
 			for p in range(1,len(self.packages)):
 				if not point in self.packages[p].points:
 					inAll = False
-			if inAll: self.points.append(point)
+			if not inAll: continue
+			if len(point.split("_"))<2: continue
+			if self.mode == "braz" and self.mass2 != float(point.split("_")[1]): continue
+			self.points.append(point)
 	def build(self):
 		## doing the combination and writing init
 		self.combine()
@@ -52,6 +59,7 @@ class Bundle():
 		self.publish()
 	def combine(self):
 		if "combine" in self.master.options.excludeTiers: return
+		if "combine" in self.modeinst.excludeTiers      : return
 		if not "combine" in self.master.options.redoTiers and self.status in ["combine","limits","summary","histo","smear","plot"]: return
 		self.master.clearJobs()
 		self.master.tier("combine")
@@ -111,6 +119,7 @@ class Bundle():
 	def histo(self):
 		## make the histograms and interpolate them
 		if "histo" in self.master.options.excludeTiers: return
+		if "histo" in self.modeinst.excludeTiers      : return
 		if self.master.options.stopAtTier in ["combine", "limits", "summary"]: return
 		if not "histo" in self.master.options.redoTiers and self.status in ["histo","smear","plot"]: return
 		self.master.tier("histo")
@@ -200,7 +209,11 @@ class Bundle():
 		self.inspectLimit()
 		return False
 	def isGood(self):
-		if len(self.packages)==0 or len(self.points)==0                   : return False
+		print self.packages
+		print self.points
+		print [p.state for p in self.packages]
+		if len(self.packages)==0                                          : return False
+		#if len(self.packages)==0 or len(self.points)==0                   : return False
 		if any([not p.state                       for p in self.packages]): return False
 		if not self.packages[0].model                                     : return False
 		if any([p.model != self.packages[0].model for p in self.packages]): return False 
@@ -208,6 +221,7 @@ class Bundle():
 	def limits(self):
 		## execute the limit jobs per card
 		if "limits" in self.master.options.excludeTiers: return
+		if "limits" in self.modeinst.excludeTiers      : return
 		if self.master.options.stopAtTier in ["combine"]: return
 		if not "limits" in self.master.options.redoTiers and self.status in ["limits","summary","histo","smear","plot"]: return
 		self.master.tier("limits")
@@ -221,6 +235,7 @@ class Bundle():
 		if not os.path.exists(self.dir +"/init"): return False
 		if hasattr(self, "init"): return False
 		self.init = Init(self, self.dir+"/init")
+		self.updateMode()
 		self.updatePackages()
 		return True
 		#if self.init.read("packages").find(",")>-1: ps = self.packages
@@ -230,6 +245,7 @@ class Bundle():
 	def plot(self):
 		## draw the final plot
 		if "plot" in self.master.options.excludeTiers: return
+		if "plot" in self.modeinst.excludeTiers      : return
 		if self.master.options.stopAtTier in ["combine", "limits", "summary", "histo", "smear"]: return
 		if not "plot" in self.master.options.redoTiers and self.status in ["plot"]: return
 		self.master.tier("plot")
@@ -245,14 +261,15 @@ class Bundle():
 	def register(self):
 		if hasattr(self, "init"): return
 		self.init = Init(self, self.dir +"/init") 
-		self.init.write({"model"   : self.master.model.name, \
-		                 "mode"    : self.mode, \
-		                 "lumis"   : ",".join(self.lumis), \
-		                 "regions" : ",".join(self.regions), \
-		                 "packages": ",".join([p.name for p in self.packages]), \
-		                 "points"  : ",".join(self.points), \
-		                 "status"  : getattr(self, "status", "init"), \
-		                 "remark"  : self.master.options.remark if self.master.options.remark else ""})
+		self.init.write({"model"    : self.master.model.name, \
+		                 "mode"     : self.mode, \
+		                 "mass2"    : str(self.mass2), \
+		                 "lumis+"   : ",".join(self.lumis), \
+		                 "regions+" : ",".join(self.regions), \
+		                 "packages+": ",".join([p.name for p in self.packages]), \
+		                 "points+"  : ",".join(self.points), \
+		                 "status"   : getattr(self, "status", "init"), \
+		                 "remark"   : self.master.options.remark if self.master.options.remark else ""})
 		self.updatePackages()
 	def tuneHisto(self):
 		return self.getTuningOptions("histo", ["histoDeltaM", "interpolsize", "paramX", "paramY", "binningX", "binningY"])
@@ -266,6 +283,7 @@ class Bundle():
 	def selectGoodMasspoints(self):
 		self.points = []
 		masspoints  = []
+		print self.packages
 		for p in self.packages: 
 			for pp in p.points:
 				if not pp in masspoints: 
@@ -275,8 +293,8 @@ class Bundle():
 				self.points.append(pp)
 	def smear(self):
 		## add the smoothed graphs to the histograms
-		if self.mode == "sens": return
 		if "smear" in self.master.options.excludeTiers: return
+		if "smear" in self.modeinst.excludeTiers      : return
 		if self.master.options.stopAtTier in ["combine", "limits", "summary", "histo"]: return
 		if not "smear" in self.master.options.redoTiers and self.status in ["smear", "plot"]: return
 		self.master.tier("smear")
@@ -287,6 +305,7 @@ class Bundle():
 	def summary(self):
 		## get the summary of all the limits
 		if "summary" in self.master.options.excludeTiers: return
+		if "summary" in self.modeinst.excludeTiers      : return
 		if self.master.options.stopAtTier in ["combine", "limits"]: return
 		if not "summary" in self.master.options.redoTiers and self.status in ["summary","histo","smear","plot"]: return
 		self.master.tier("summary")
@@ -294,8 +313,13 @@ class Bundle():
 		self.master.runJob(self, "summary", "summary.py", {}, not self.master.options.qall)
 		self.init.update("status", "summary")
 		self.inspect("summary")
+	def updateMode(self):
+		if not hasattr(self.master, "mode"    ): return
+		if not hasattr(self       , "mode"    ): self.mode     = self.master.mode
+		if not hasattr(self       , "modeinst"): self.modeinst = Mode(self.mode)	
+		if not hasattr(self       , "mass2"   ): self.mass2    = float(self.master.options.mass2)
+		else                                   : self.mass2    = float(self.mass2)
 	def updatePackages(self):
-		if isinstance(self.packages, basestring): self.packages = [self.packages]
 		if len(self.packages)==0: return
 		if hasattr(self.packages[0],"name"): return
 		ps = self.packages
@@ -385,7 +409,7 @@ class BundleHandler():
 		# do build for all bundles
 		theBundle = None
 		for b in self.bundles:
-			if b.packages == packages and b.mode == self.master.mode:
+			if b.packages == packages and b.mode == self.master.mode and not (any([p.importdir in self.master.options.inputdir for p in packages]) and self.master.options.forceImport):
 				theBundle = b
 		if not theBundle:
 			bname = timestamp(False)

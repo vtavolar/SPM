@@ -29,6 +29,7 @@ pr.add_option("--view"                  , dest="view"        , action="store_tru
 pr.add_option("-v"                      , dest="verbosity"   , type="int"         , default=1    , help="Verbosity level (0 = nothing, 1 = tiers and jobcontrol, 2 = everything, 3 = debugging [not yet implemented])")
 pr.add_option("-b", "--bundle"          , dest="bundle"      , type="string"      , default=0    , help="Name of the bundle to use")
 pr.add_option("--remark"                , dest="remark"      , type="string"      , default=0    , help="Add a remark to that bundle (something like 'new configuration' or 'test' or whatnot)")
+pr.add_option("--m2"                    , dest="mass2"       , type="float"       , default=0    , help="Give the mass of the second particle in order to be able to run plotmode 'braz' in case of many second masses")
 
 (options, args) = pr.parse_args()
 
