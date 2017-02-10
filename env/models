@@ -1,6 +1,6 @@
 BEGIN::TChiWH
   xsecfile      := xsec/xsec_ChiNeu.txt
-  brcorr        := 0.03634/1000.
+  brcorr        := 1.0/1000.
   mode          := xsec
   cutGraphsX    := 250
   preAlgo       := k3a
@@ -26,7 +26,7 @@ ENDDEF
 
 BEGIN::TChiWZ
   xsecfile      := xsec/xsec_ChiNeu.txt
-  brcorr        := 0.10099/1000.
+  brcorr        := 1.0/1000.
   interpolsize  := 5
   histoDeltaM  +:= 88
   preAlgo       := k5a
@@ -51,7 +51,7 @@ ENDDEF
 
 BEGIN::TChiNeuWZ_SOS
   xsecfile    := xsec/xsec_ChiNeu.txt
-  brcorr      := 0.10099/1000.
+  brcorr        := 1.0/1000.
 #  binningX      := 24,87.5,687.5
 #  binningY      := 30,-5,395
 #  rangeX        := 87.5,487.5
@@ -60,7 +60,7 @@ ENDDEF
 
 BEGIN::TChiSlepSnu_FD
   xsecfile            := xsec/xsec_ChiNeu.txt
-  brcorr              := 0.5/1000.
+  brcorr              := 1.0/1000.
   preAlgo             := k5a
   smoothAlgo          := kba
   nSmooth             := 6
@@ -85,7 +85,7 @@ ENDDEF
 
 #BEGIN::TChiNeuSlepSneu_FD
 #  xsecfile      := xsec/xsec_ChiNeu.txt
-#  brcorr        := 0.5/1000.
+#  brcorr        := 1.0/1000.
 #  preAlgo       := k5a
 #  smoothAlgo    := kba
 #  nSmooth       := 6
@@ -104,7 +104,7 @@ ENDDEF
 
 BEGIN::TChiSlepSnu_FD_05
   xsecfile      := xsec/xsec_ChiNeu.txt
-  brcorr        := 0.5/1000.
+  brcorr        := 1.0/1000.
   preAlgo       := k5a
   smoothAlgo    := kba
   nSmooth       := 6
@@ -151,7 +151,7 @@ ENDDEF
 
 BEGIN::TChiZZ4L
   xsecfile      := xsec/xsec_NeuNeu.txt
-  brcorr        := 0.10099*0.10099/1000
+  brcorr        := 1.0/1000
   mode          := braz
   binningY      := 1,0.5,1.5
   binningX      := 41,100,1025
@@ -162,14 +162,22 @@ ENDDEF
 
 BEGIN::TChiHZ
   xsecfile      := xsec/xsec_NeuNeu.txt
-  brcorr        := 0.10099*0.3040/1000
+  brcorr        := 1.0/1000
   mode          := braz
-  binningX      := 9,112.5,337,5
+  binningY      := 1,0.5,1.5
+  binningX      := 41,100,1025
+  #rangeY        := 0.001,2
+  rangeY        := 0.0001,10
+  rangeX        := 100,1000
 ENDDEF
 
 BEGIN::TChiHH
   xsecfile      := xsec/xsec_NeuNeu.txt
-  brcorr        := 0.3040*0.3040/1000
+  brcorr        := 1.0/1000
   mode          := braz
-  binningX      := 9,112.5,337,5
+  binningY      := 1,0.5,1.5
+  binningX      := 41,100,1025
+  #rangeY        := 0.001,2
+  rangeY        := 0.0001,10
+  rangeX        := 100,1000
 ENDDEF
