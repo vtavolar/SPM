@@ -39,6 +39,7 @@ class Bundle():
 			self.mass2    = float(self.master.options.mass2)
 	def selectPoints(self):
 		self.points = []
+		if len(self.packages)<1 or not hasattr(self.packages[0], "points"): return
 		for point in self.packages[0].points:
 			inAll = True
 			for p in range(1,len(self.packages)):
@@ -46,6 +47,7 @@ class Bundle():
 					inAll = False
 			if not inAll: continue
 			if len(point.split("_"))<2: continue
+			if len(self.master.options.points)>0 and not point in self.master.options.points: continue
 			if self.mode == "braz" and self.mass2 != float(point.split("_")[1]): continue
 			self.points.append(point)
 	def build(self):
@@ -78,7 +80,7 @@ class Bundle():
 			cp(self.master, self.packages[0].cardsdir+"/"+point+".txt", self.cardsdir)
 	def combineCards(self, point):
 		if point.strip()=="": return
-		self.master.registerJob(self, "combine_"+point, "combine.sh", {"packages": [p.name for p in self.packages], "card": point+".txt"}, False, 20)
+		self.master.registerJob(self, "combine_"+point, "combine.sh", {"packages": [p.name for p in self.packages], "card": point+".txt"}, False, 5) 
 	def create(self, packages = []):
 		if len(self.packages)==0: self.master.error("I cannot create the bundle '"+self.name+"' without any packages!")
 		self.selectPoints()
@@ -353,7 +355,8 @@ class BundleHandler():
 		self.bundlesToRun = []
 		available         = self.pool.getListOfPackages()
 		if len(available) == 0: return
-		if   len(self.master.options.cmbLumis   )>0: self.combLumis  (available)
+		if       self.master.options.cmbAll        : self.runBundle  (available)  
+		elif len(self.master.options.cmbLumis   )>0: self.combLumis  (available)
 		elif len(self.master.options.cmbRegions )>0: self.combRegions(available)
 		elif len(self.master.options.addPackages)>0: self.addPackages(available)
 		else                                       : self.manualComb (available)

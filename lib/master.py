@@ -59,7 +59,8 @@ class SPM():
 				njobs = [j.isDone() or j.isError() for j in self.jobs].count(False)
 			nerr = [j.isError() for j in self.jobs].count(True)
 			if nerr>0:
-				self.error(str(nerr)+"/"+str(len(self.jobs))+" jobs have finished in error state.")
+				self.talk(str(nerr)+"/"+str(len(self.jobs))+" jobs have finished in error state.")
+				#self.error(str(nerr)+"/"+str(len(self.jobs))+" jobs have finished in error state.")
 		self.jobs = []
 		self.jobcount = -1
 		cleandir(self, self.jobdir)

@@ -16,17 +16,20 @@ class Job():
 	def addTask(self, script, args):
 		self.tasks += self.prepare(script, args, True)
 	def batchRuns(self):
+		if hasattr(self, "batchDone"): return self.batchDone
 		if self.batchId==-1: return False
+		toReturn = False
 		if self.options.queue in ["all.q", "long.q", "short.q"]:
 			jobLine = bash(self.master, "qstat -j "+str(self.batchId))
-			return not(jobLine=="" or "Following jobs do not exist" in jobLine)
+			toReturn = not(jobLine=="" or "Following jobs do not exist" in jobLine)
 		elif self.options.queue in ["batch"] and os.path.isdir('/pool/ciencias/'):
 			jobLine = bash(self.master, "qstat "+str(self.batchId)) 
-			return not(jobLine=="" or "Unknown Job Id Error" in jobLine)
+			toReturn = not(jobLine=="" or "Unknown Job Id Error" in jobLine)
 		else:
 			jobLine = bash(self.master, "bjobs "+str(self.batchId))
-			return not(jobLine=="" or "Job <"+str(self.batchId)+"> is not found" in jobLine)
-		return False
+			toReturn = not(jobLine=="" or "Job <"+str(self.batchId)+"> is not found" in jobLine)
+		if toReturn: setattr(self, "batchDone", True)
+		return toReturn
 	def isDone(self):
 		return os.path.exists(self.master.jobdir+"/"+self.id)
 	def isError(self):

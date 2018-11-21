@@ -199,6 +199,7 @@ def fillBoundaryAlongY(histo, buffer, useLowerEdge = True, slope = 1):
 
 
 def makeHistFromGraph(model, graph, name, deltaM = 0, theList = None):
+	if graph.GetXmax()-graph.GetXmin()==0: return None
 	deltaM  = int(deltaM)
 	npx     = getNbins(graph.GetNpx(), graph.GetXmax()-graph.GetXmin(), model.b1[2]-model.b1[1])
 	npy     = getNbins(graph.GetNpy(), graph.GetYmax()-graph.GetYmin(), model.b2[2]-model.b2[1])
@@ -235,6 +236,15 @@ def getSubset(already, alllimits, deltaM, binningY):
 		subset.append(limit)
 	subset = fillHolesSubset(subset, deltaM, binningY)
 	return subset
+
+def cutOffDiagonal(histo, diag):
+	if diag==0: return histo
+	for bx in range(1,histo.GetNbinsX()+1):	
+		for by in range(1,histo.GetNbinsY()+1):
+			dist = histo.GetXaxis().GetBinCenter(bx)-histo.GetYaxis().GetBinCenter(by)
+			if dist>=0 and dist<=diag: continue
+			histo.SetBinContent(bx, by, 0)
+	return histo
 
 def fillHolesHisto(theHisto, neighborHisto, binningY):
 	if not neighborHisto: return theHisto
@@ -409,6 +419,7 @@ for idx,points in enumerate(thePointList):
 
 	## storing histograms
 	for lim in limits:
+		if not lim in h_lims_mu.keys() or not h_lims_mu[lim]: continue
 		LimitsMu [idx][lim] = h_lims_mu [lim]
 		GraphsMu [idx][lim] = g2_lims_mu[lim]
 
@@ -417,13 +428,14 @@ for idx,points in enumerate(thePointList):
 if not plotmode in slimModes:
 	for idx,points in enumerate(thePointList):
 		for lim in limits:
+			if not lim in LimitsMu[idx].keys() or not LimitsMu[idx][lim]: continue
 			npy     = getNbins(GraphsMu[idx][lim].GetNpy(), GraphsMu[idx][lim].GetYmax()-GraphsMu[idx][lim].GetYmin(), model.b2[2]-model.b2[1])
 			binsize = (model.b2[2]-model.b2[1])/npy
 			neighbor = LimitsMu[idx+1][lim] if idx+1 < len(thePointList) else None
+			LimitsMu[idx][lim] = cutOffDiagonal(LimitsMu[idx][lim], model.histoDeltaMs[idx])
 			LimitsMu[idx][lim] = fillHolesHisto(LimitsMu[idx][lim], neighbor, binsize)
 			LimitsYn[idx][lim] = getLimitYN    (LimitsMu[idx][lim]                   )
 			LimitsXs[idx][lim] = getLimitXS    (LimitsMu[idx][lim], xslist           )
-	
 	
 ## saving histograms to disk
 for idx, points in enumerate(thePointList):
@@ -437,6 +449,7 @@ for idx, points in enumerate(thePointList):
 		LimitsXs0[idx][lim].Write()
 		LimitsYn0[idx][lim].Write()
 		if plotmode in slimModes: continue
+		if not lim in LimitsMu[idx].keys() or not LimitsMu[idx][lim]: continue
 		GraphsMu [idx][lim].SetName("g2_"+lim+"_mu0")
 		GraphsMu [idx][lim].Write()
 		LimitsMu [idx][lim].SetName(lim+"_mu")

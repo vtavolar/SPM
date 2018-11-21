@@ -24,6 +24,7 @@ class Package():
 		if os.path.exists(self.dir +"/init"): return
 		if not self.importdir: return
 		m = self.importdir.split("/")[-1]
+		##m = m.replace("_0p1","").replace("_0p2","").replace("_0p3","").replace("_0p4","").replace("_0p5","").replace("_0p6","").replace("_0p7","").replace("_0p8","").replace("_0p9","")
 		self.points = []
 		for point in [l.strip("\n") for l in os.listdir(self.importdir+"/mps")]:
 			if not os.path.isdir (self.importdir+"/mps/"+point                                   ): continue
@@ -99,15 +100,15 @@ class PoolHandler():
 			if p.model == self.master.model.name: 
 				listOfPackages.append(p)
 		if self.master.options.indironly:
-			listOfPackages = getPackageList(listOfPackages, lambda p:     p.importbase == self.master.options.inputdir)
+			listOfPackages = self.getPackageList(listOfPackages, lambda p:     p.importbase == self.master.options.inputdir)
 		if self.master.options.poolonly:
-			listOfPackages = getPackageList(listOfPackages, lambda p: not p.importbase == self.master.options.inputdir)
+			listOfPackages = self.getPackageList(listOfPackages, lambda p: not p.importbase == self.master.options.inputdir)
 		if len(self.master.options.lumis)>0:
-			listOfPackages = getPackageList(listOfPackages, lambda p: p.lumi   in self.master.options.lumis   )
+			listOfPackages = self.getPackageList(listOfPackages, lambda p: p.lumi   in self.master.options.lumis   )
 		if len(self.master.options.regions)>0:
-			listOfPackages = getPackageList(listOfPackages, lambda p: p.region in self.master.options.regions )
+			listOfPackages = self.getPackageList(listOfPackages, lambda p: p.region in self.master.options.regions )
 		if len(self.master.options.packages)>0:
-			listOfPackages = getPackageList(listOfPackages, lambda p: p.name   in self.master.options.packages)
+			listOfPackages = self.getPackageList(listOfPackages, lambda p: p.name   in self.master.options.packages)
 		return listOfPackages
 	def getPackage(self, pname):
 		names = [p.name for p in self.packages]

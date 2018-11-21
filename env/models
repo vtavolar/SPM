@@ -1,3 +1,139 @@
+BEGIN::T2tt
+  xsecfile      := xsec/xsec_ChiNeu.txt 
+### CHANGE THIS!!!!
+  brcorr        := 1.0/1000.
+  interpolsize  := 2
+#  histoDeltaM  +:= 40
+#  histoDeltaM  +:= 88
+  preAlgo       := k3a
+  smoothAlgo    := kba
+  nSmooth       := 2
+  smoothCont    := False
+  binningX      := 25,300,550
+  binningY      := 20,0,100
+#  binningX      := 1200,100,700
+#  binningY      := 80,0,400
+  plane         := obs_xs
+#  skipContour        +:= obs;op1s;om1s
+#  skipContourSmooth  +:= obs;op1s;om1s
+  rangeX        := 300,520
+  rangeY        := 10,105
+#  rangeY        := 0,375
+#  rangeY        := 0,425
+  rangeZ        := 0.1,200
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := #Delta m(#tilde{#chi}_{1}^{#pm}, #tilde{#chi}_{1}^{0}) [GeV]
+  paramY        := mass1-mass2
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+#  diag         +:= offset=85
+ENDDEF
+
+BEGIN::TChiWZ
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 1.0/1000.
+  interpolsize  := 1
+#  histoDeltaM  +:= 40
+#  histoDeltaM  +:= 88
+  preAlgo       := k3a
+  smoothAlgo    := kba
+  nSmooth       := 2
+  smoothCont    := True
+  binningX      := 41,100,305
+  ## for xsec
+  #binningX      := 10,75,325   ## for significance
+  binningY      := 12,0,60
+#  binningX      := 1200,100,700
+#  binningY      := 80,0,400
+  plane         := obs_xs
+#  skipContour        +:= obs;op1s;om1s
+#  skipContourSmooth  +:= obs;op1s;om1s
+  rangeX        := 100,260
+  rangeY        := 7.5,50
+#  rangeY        := 0,375
+#  rangeY        := 0,425
+  rangeZ        := 0.1,200
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := #Delta m(#tilde{#chi}_{1}^{#pm}, #tilde{#chi}_{1}^{0}) [GeV]
+  paramY        := mass1-mass2
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+#  diag         +:= offset=85
+ENDDEF
+
+BEGIN::Higgsinos
+  xsecfile      := xsec/xsec_ChiNeu.txt 
+### CHANGE THIS!!!!
+  brcorr        := 1.0/1000.
+  interpolsize  := 2
+#  histoDeltaM  +:= 40
+#  histoDeltaM  +:= 88
+  preAlgo       := k3a
+  smoothAlgo    := kba
+  nSmooth       := 2
+  smoothCont    := False
+  binningX      := 16,100,260
+  binningY      := 10,0,50
+#  binningX      := 1200,100,700
+#  binningY      := 80,0,400
+  plane         := obs_xs
+#  skipContour        +:= obs;op1s;om1s
+#  skipContourSmooth  +:= obs;op1s;om1s
+  rangeX        := 100,180
+  rangeY        := 7.5,50
+#  rangeY        := 0,375
+#  rangeY        := 0,425
+  rangeZ        := 0.1,200
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := #Delta m(#tilde{#chi}_{1}^{#pm}, #tilde{#chi}_{1}^{0}) [GeV]
+  paramY        := mass1-mass2
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+#  diag         +:= offset=85
+ENDDEF
+
+BEGIN::Pmssm
+  xsecfile      := xsec/xsec_ChiNeu.txt 
+### CHANGE THIS!!!!
+  brcorr        := 1.0/1000.
+  interpolsize  := 2
+#  histoDeltaM  +:= 40
+#  histoDeltaM  +:= 88
+  preAlgo       := k3a
+  smoothAlgo    := kba
+  nSmooth       := 2
+  smoothCont    := False
+  binningX      := 16,100,260
+  binningY      := 10,0,50
+#  binningX      := 1200,100,700
+#  binningY      := 80,0,400
+  plane         := obs_xs
+#  skipContour        +:= obs;op1s;om1s
+#  skipContourSmooth  +:= obs;op1s;om1s
+  rangeX        := 100,19
+  rangeY        := 300,950
+#  rangeY        := 0,375
+#  rangeY        := 0,425
+  rangeZ        := 0.1,200
+  legendX       := #mu [GeV]
+  legendY       := M_{1}=0.5M_{2} [GeV]
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+#  diag         +:= offset=85
+ENDDEF
+
+
+
+
+## ------- multilepton stuff below ---------
+
+
+
+
 BEGIN::TChiWH
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 1.0/1000.
@@ -8,45 +144,59 @@ BEGIN::TChiWH
   nSmooth       := 3
   deltaM        := 125
   interpolsize  := 25
-  binningX      := 9,112.5,337,5
+#  binningX      := 9,112.5,337.5
+#  binningY      := 9,-12.5,212.5
+#  rangeX        := 125,325
+#  rangeY        := 0,200
+#  rangeZ        := 0.1,2
+  binningX      := 24,112.5,712.5
   binningY      := 9,-12.5,212.5
-  rangeX        := 125,325
+  rangeX        := 125,700
   rangeY        := 0,200
-  basis         := mu0
-  plane         := obs_xs0
+  rangeZ        := 0.001,2
+#  basis         := mu0
+  basis         := mu
+  plane         := obs_xs
+#  basis         := mu0
+#  plane         := obs_xs0
   skipContour  +:= ep2s;em2s
+  smoothCont    := False
 #  gr_em1s       := gr_em1s_smoothed
   legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
-  nDivX         := 205
-  nDivY         := 205
+  nDivX         := 505
+  nDivY         := 505
   text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WH#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
   diag         +:= offset=125 
 ENDDEF
 
-BEGIN::TChiWZ
+BEGIN::TChiWZmix
   xsecfile      := xsec/xsec_ChiNeu.txt
   brcorr        := 1.0/1000.
   interpolsize  := 5
-  histoDeltaM  +:= 88
+#  histoDeltaM  +:= 88
+#  histoDeltaM  +:= 126
+  excludeDM     := 100
+  deltaM        := 125
   preAlgo       := k5a
   smoothAlgo    := kba
   nSmooth       := 6
-  smoothCont    := False
+  smoothCont    := True
   binningX      := 1200,100,700
   binningY      := 80,0,400
   plane               := obs_xs
 #  skipContour        +:= obs;op1s;om1s
 #  skipContourSmooth  +:= obs;op1s;om1s
-  rangeX        := 100,600
-  rangeY        := 0,300
+  rangeX        := 125,700
+  rangeY        := 0,375
   rangeZ        := 0.001,2
   legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
-  nDivX         := 205
-  nDivY         := 205
-  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
-  diag         +:= offset=85
+  nDivX         := 505
+  nDivY         := 505
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0}, BR(#tilde{#chi}_{1}^{#pm}#rightarrow W#tilde{#chi}^{0}_{1}) = 1
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow Z#tilde{#chi}^{0}_{1}) = BR(#tilde{#chi}_{2}^{0}#rightarrow H#tilde{#chi}^{0}_{1}) = 0.5
+  diag         +:= offset=125
 ENDDEF
 
 BEGIN::TChiNeuWZ_SOS
@@ -65,22 +215,25 @@ BEGIN::TChiSlepSnu_FD
   smoothAlgo          := kba
   nSmooth             := 6
   smoothCont          := True
-  binningX            := 45,87.5,1212.5
+  excludeDM           := 50
+  binningX            := 49,87.5,1312.5
   binningY            := 37,-12.5,912.5 
-  interpolsize        := 5
-  rangeX              := 100,1200
+  interpolsize        := 12.5
+  #interpolsize        := 5
+  rangeX              := 100,1300
   rangeY              := 0,1100
   rangeZ              := 0.0001,2
   nDivX               := 505
   nDivY               := 505
   basis               := mu0
+  plane               := obs_mu0
   plane               := obs_xs
 #  skipContour        +:= obs;op1s;om1s
 #  skipContourSmooth  +:= obs;op1s;om1s
   legendX             := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY             := m_{#tilde{#chi}_{1}^{0}} [GeV]
-  text               +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
-  text               +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}})
+  text               +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}
+  text               +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5m_{#tilde{#chi}_{1}^{#pm}}+0.5m_{#tilde{#chi}_{1}^{0}}
 ENDDEF
 
 #BEGIN::TChiNeuSlepSneu_FD
@@ -99,7 +252,7 @@ ENDDEF
 #  legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
 #  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
 #  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
-#  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}})
+#  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5m_{#tilde{#chi}_{1}^{#pm}}+0.5m_{#tilde{#chi}_{1}^{0}}
 #ENDDEF
 
 BEGIN::TChiSlepSnu_FD_05
@@ -107,18 +260,110 @@ BEGIN::TChiSlepSnu_FD_05
   brcorr        := 1.0/1000.
   preAlgo       := k5a
   smoothAlgo    := kba
+  excludeDM     := 40
+  nSmooth       := 6
+  smoothCont    := True
+  binningX      := 49,87.5,1312.5
+  binningY      := 37,-12.5,912.5 
+  #interpolsize  := 12.5
+  interpolsize  := 5
+  rangeX        := 100,1300
+  rangeY        := 0,900
+  rangeZ        := 0.0001,2
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.05m_{#tilde{#chi}_{1}^{#pm}}+0.95m_{#tilde{#chi}_{1}^{0}}
+ENDDEF
+
+BEGIN::TChiSlepSnu_FD_95
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 1.0/1000.
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  #excludeDM     := 40
   nSmooth       := 6
   smoothCont    := True
   binningX      := 45,87.5,1212.5
   binningY      := 37,-12.5,912.5 
-  interpolsize  := 5
+  interpolsize  := 12.5
+  #interpolsize  := 5
   rangeX        := 100,1200
   rangeY        := 0,900
   rangeZ        := 0.0001,2
   legendX       := m_{#tilde{#chi}_{1}^{#pm}} = m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
-  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}#tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0}
-  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.5(m_{#tilde{#chi}_{1}^{#pm}}+m_{#tilde{#chi}_{1}^{0}})
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow l#tilde{#nu}l#tilde{l}
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=0.5, m_{#tilde{l}} = 0.95m_{#tilde{#chi}_{1}^{#pm}}+0.05m_{#tilde{#chi}_{1}^{0}}
+ENDDEF
+
+BEGIN::TChiSlepSnu_TE
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 1.0/1000.
+  interpolsize  := 10
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := True
+#  excludeDM     := 40
+  binningX      := 23,75,1225
+  binningY      := 37,-12.5,912.5 
+  rangeX        := 100,1200
+  rangeY        := 0,1000
+  rangeZ        := 0.0001,2
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  nDivX         := 505
+  nDivY         := 505
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow #tilde{#tau}#nu#tilde{l}l
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=1, m_{#tilde{#tau}} = 0.5m_{#tilde{#chi}_{1}^{#pm}}+0.5m_{#tilde{#chi}_{1}^{0}}
+  diag         +:= 
+ENDDEF
+
+BEGIN::TChiSlepSnu_TE_05
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 1.0/1000.
+  interpolsize  := 12.5
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := True
+  excludeDM     := 100
+  binningX      := 23,75,1225
+  binningY      := 37,-12.5,912.5 
+  rangeX        := 100,1200
+  rangeY        := 0,700
+  rangeZ        := 0.0001,2
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  nDivX         := 505
+  nDivY         := 505
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow #tilde{#tau}#nu#tilde{l}l
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=1, m_{#tilde{#tau}} = 0.05m_{#tilde{#chi}_{1}^{#pm}}+0.95m_{#tilde{#chi}_{1}^{0}}
+  diag         +:= 
+ENDDEF
+
+BEGIN::TChiSlepSnu_TE_95
+  xsecfile      := xsec/xsec_ChiNeu.txt
+  brcorr        := 1.0/1000.
+  interpolsize  := 10
+  preAlgo       := k5a
+  smoothAlgo    := kba
+  nSmooth       := 6
+  smoothCont    := True
+  excludeDM     := 60
+  binningX      := 23,75,1225
+  binningY      := 37,-12.5,912.5 
+  rangeX        := 100,1200
+  rangeY        := 0,1000
+  rangeZ        := 0.0001,2
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
+  nDivX         := 505
+  nDivY         := 505
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow #tilde{#tau}#nu#tilde{l}l
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow l#tilde{l})=1, m_{#tilde{#tau}} = 0.95m_{#tilde{#chi}_{1}^{#pm}}+0.05m_{#tilde{#chi}_{1}^{0}}
+  diag         +:= 
 ENDDEF
 
 BEGIN::TChiSlepSnu_TD
@@ -134,14 +379,15 @@ BEGIN::TChiSlepSnu_TD
   binningY      := 17,-12.5,412.5
   rangeX        := 100,700
   rangeY        := 0,400
-  rangeZ        := 0.01,2
+  rangeZ        := 0.001,2
   legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
   legendY       := m_{#tilde{#chi}_{1}^{0}} [GeV]
-  nDivX         := 205
-  nDivY         := 205
+  nDivX         := 505
+  nDivY         := 505
   text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow #tilde{#tau}#nu#tilde{#tau}#tau
-  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow#tau#tilde{#tau})=1, m_{#tilde{#tau}} = 0.5(#tilde{#chi}_{1}^{#pm}+#tilde{#chi}_{2}^{0})
+  text         +:= BR(#tilde{#chi}_{2}^{0}#rightarrow#tau#tilde{#tau})=1, m_{#tilde{#tau}} = 0.5m_{#tilde{#chi}_{1}^{#pm}}+0.5m_{#tilde{#chi}_{2}^{0}}
   diag         +:= 
+  cutGraphsY    :=  90
 ENDDEF
 
 BEGIN::T2tt_SOS
@@ -154,10 +400,17 @@ BEGIN::TChiZZ4L
   brcorr        := 1.0/1000
   mode          := braz
   binningY      := 1,0.5,1.5
-  binningX      := 41,100,1025
-  #rangeY        := 0.001,2
-  rangeY        := 0.0001,10
+  binningX      := 41,87.5,1012.5
+#  rangeY        := 0.9,1000000
+  rangeY        := 0.009,10000
   rangeX        := 100,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow ZZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow ZZ#tilde{G}#tilde{G} (4l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=1, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
 ENDDEF
 
 BEGIN::TChiHZ
@@ -165,10 +418,18 @@ BEGIN::TChiHZ
   brcorr        := 1.0/1000
   mode          := braz
   binningY      := 1,0.5,1.5
-  binningX      := 41,100,1025
-  #rangeY        := 0.001,2
-  rangeY        := 0.0001,10
-  rangeX        := 100,1000
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
 ENDDEF
 
 BEGIN::TChiHH
@@ -176,8 +437,188 @@ BEGIN::TChiHH
   brcorr        := 1.0/1000
   mode          := braz
   binningY      := 1,0.5,1.5
-  binningX      := 41,100,1025
-  #rangeY        := 0.001,2
-  rangeY        := 0.0001,10
-  rangeX        := 100,1000
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.09,1000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HH#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HH#tilde{G}#tilde{G}
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=1, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
 ENDDEF
+
+BEGIN::TChiHZ_0p1
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          :L braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p2
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p3
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p4
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p5
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p6
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p7
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p8
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+BEGIN::TChiHZ_0p9
+  xsecfile      := xsec/xsec_NeuNeu.txt
+  brcorr        := 1.0/1000
+  mode          := braz
+  binningY      := 1,0.5,1.5
+  binningX      := 41,87.5,1012.5
+  rangeY        := 0.009,10000
+#  rangeY        := 0.09,1000
+#  rangeY        := 0.9,10000
+  rangeX        := 125,1000
+  logY          := True
+  posY          := 150,100,70,55
+  legendX       := Higgsino mass m_{#tilde{#chi}_{1}^{0}} [GeV]
+  legendY       :=
+  text         +:= pp #rightarrow #tilde{#chi}_{i}^{0,#pm}#tilde{#chi}_{j}^{0,#mp} #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} +X_{soft} #rightarrow HZ#tilde{G}#tilde{G} +X_{soft}
+#  text         +:= pp #rightarrow #tilde{#chi}_{1}^{0}#tilde{#chi}_{1}^{0} #rightarrow HZ#tilde{G}#tilde{G} (HZ#tilde{G}#tilde{G} 3l events only)
+  text         +:= BR(#tilde{#chi}_{1}^{0}#rightarrow Z#tilde{G})=0.5, BR(#tilde{#chi}_{1}^{0}#rightarrow H#tilde{G})=0.5, m_{#tilde{#chi}_{2}^{0}} #approx m_{#tilde{#chi}_{1}^{#pm}} #approx m_{#tilde{#chi}_{1}^{0}}, m_{#tilde{G}} = 1 GeV
+ENDDEF
+
+
+

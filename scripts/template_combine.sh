@@ -21,5 +21,5 @@ for EL in "${PACKAGES[@]}"; do
 done
 ls
 echo $PROCS
-eval `combineCards.py $PROCS > $CARD`
+eval `combineCards.py -S $PROCS > $CARD`
 eval `mv $CARD $BUNDLEDIR/$BUNDLE/cards/`

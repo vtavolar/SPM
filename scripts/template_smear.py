@@ -10,8 +10,9 @@ smearpath   = "[SMEAR]"
 
 limits      = ["obs", "exp", "ep1s", "em1s", "ep2s", "em2s", "op1s", "om1s"]
 
+h_lims      = {} # limits in signal-strength, interpolated 
 h_lims_mu   = {} # limits in signal-strength, interpolated 
-h_lims_mu0  = {} # limits in signal-strength
+#h_lims_mu0  = {} # limits in signal-strength
 g2_lims_mu  = {} # TGraph2D limits in signal-strength, automatic interpolation
 theGraphs0  = [] # raw graphs
 theGraphs1  = [] # smoothed graphs
@@ -429,10 +430,12 @@ for f in files:
 	## read histos from file
 	fin = ROOT.TFile(histopath+"/"+f, "READ")
 	for lim in limits:
-		h_lims_mu [lim] = fin.Get(lim+"_mu") ; h_lims_mu [lim].SetDirectory(0)
-		h_lims_mu0[lim] = fin.Get(lim+"_mu0"); h_lims_mu0[lim].SetDirectory(0)
+		h_lims    [lim] = fin.Get(lim+"_"+model.basis) ; h_lims   [lim].SetDirectory(0)
+		h_lims_mu [lim] = fin.Get(lim+"_mu"          ) ; h_lims_mu[lim].SetDirectory(0)
+		#h_lims_mu0[lim] = fin.Get(lim+"_mu0"); h_lims_mu0[lim].SetDirectory(0)
 		# unfortunately, we need to redo the TGraph2D
-		g2_lims_mu[lim] = ROOT.TGraph2D(h_lims_mu[lim] if model.basis == "mu" else h_lims_mu0[lim])
+		#g2_lims_mu[lim] = ROOT.TGraph2D(h_lims_mu[lim] if model.basis == "mu" else h_lims_mu0[lim])
+		g2_lims_mu[lim] = ROOT.TGraph2D(h_lims[lim])
 		g2_lims_mu[lim].SetName("g2_"+lim+"_mu0")
 		g2_lims_mu[lim].SetNpx( int((g2_lims_mu[lim].GetXmax()-g2_lims_mu[lim].GetXmin())/model.interpol) )
 		g2_lims_mu[lim].SetNpy( int((g2_lims_mu[lim].GetYmax()-g2_lims_mu[lim].GetYmin())/model.interpol) )

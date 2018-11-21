@@ -32,6 +32,7 @@ for file in os.listdir(limitdir):
 	if abs(lims[0]-lims[1])<=exclude: continue
 
 	rt = rf.Get("limit")
+	if not rt: continue
 	for ev in rt:
 		if abs(ev.quantileExpected + 1    ) < 0.02: lims[3] = ev.limit
 		if abs(ev.quantileExpected - 0.5  ) < 0.02: lims[2] = ev.limit

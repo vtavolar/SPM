@@ -11,7 +11,7 @@ def askForInput(mm, question, values = [], type="string"):
 	return raw
 
 def bash(mm, cmd):
-	mm.talk2(cmd)
+	if mm: mm.talk2(cmd)
 	pipe = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 	back = pipe.stdout.read().rstrip("\n").strip()
 	return back
@@ -22,9 +22,9 @@ def cleandir(mm, path, cpIdx = False):
 	cmd(mm, "rm -rf " + path + "/*")
 	if cpIdx: cp(mm, "/afs/cern.ch/user/g/gpetrucc/php/index.php", path)
 
-def cmd(mm, cmd):
-	if mm: mm.talk2(cmd)
-	os.system(cmd)
+def cmd(mm, base):
+	if mm: mm.talk2(base)
+	os.system(base)
 
 def cp(mm, location, destination):
 	cmd(mm, "cp " + location + " " + destination)

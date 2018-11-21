@@ -6,4 +6,4 @@ cd SPM
 cd [BUNDLE]
 cp [BUNDLEDIR]/[BUNDLE]/cards/[CARD] [CARD]
 combine [CMD] [CARD] -n [CARD] -m [MASS1] -s [MASS2]
-mv higgsCombine[CARD].Asymptotic.mH[MASS1].[MASS2].root [BUNDLEDIR]/[BUNDLE]/limits
+mv higgsCombine[CARD].*.mH[MASS1].[MASS2].root [BUNDLEDIR]/[BUNDLE]/limits

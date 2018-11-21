@@ -1,10 +1,11 @@
-import ROOT
+import ROOT, math
 from array import *
 ## code largely taken from: https://github.com/rpatelCERN/SUSY2015SMS/tree/master/PlotsSMS
 
 histopath   = "[HISTO]" 
 smearpath   = "[SMEAR]" 
 plotpath    = "[PLOT]" 
+spmpath      = "[SPMDIR]"
 exts        = "[EXTS]"   
 preliminary = "[PRELIMINARY]"
 lumis       = [ [LUMIS] ]
@@ -142,6 +143,32 @@ def CMS_lumi(pad,  iPeriod,  iPosX, aLittleExtra = 0.09):
         latex.DrawLatex(posX_, posY_, extraText)      
     pad.Update()
 
+def userToNDC(coord, isX = False):
+	isLog = ROOT.gPad.GetLogy()
+	begin = ROOT.gPad.GetY1()
+	dist  = ROOT.gPad.GetY2()-ROOT.gPad.GetY1()
+	if isX:
+		isLog = ROOT.gPad.GetLogx()
+		begin = ROOT.gPad.GetX1() 
+		dist  = ROOT.gPad.GetX2()-ROOT.gPad.GetX1()
+	return math.log((coord-begin)/dist, 10) if isLog else (coord-begin)/dist # FIXME: test it!
+
+def NDCtoUser(coord, isX = False):
+	isLog = ROOT.gPad.GetLogy()
+	begin = ROOT.gPad.GetY1()
+	dist  = ROOT.gPad.GetY2()-ROOT.gPad.GetY1()
+	if isX:
+		isLog = ROOT.gPad.GetLogx()
+		begin = ROOT.gPad.GetX1() 
+		dist  = ROOT.gPad.GetX2()-ROOT.gPad.GetX1()
+	return math.pow(10, dist*coord+begin) if isLog else dist*coord+begin
+
+def relSize(length, isX=False):
+	dist  = ROOT.gPad.GetY2()-ROOT.gPad.GetY1()
+	if isX:
+		dist  = ROOT.gPad.GetX2()-ROOT.gPad.GetX1()
+	return length/dist
+
 def color(colorname):
 	return eval("ROOT."+colorname)
 
@@ -170,7 +197,8 @@ def createSigmaBand(plus, minus):
 	for i in range(0,nM):
 		minus.GetPoint(i, sigmaBandX[nP+nM-i-1], sigmaBandY[nP+nM-i-1])
 	theGraph = ROOT.TGraph(nP+nM, array('d', sigmaBandX), array('d', sigmaBandY))
-	theGraph.SetFillStyle(3001)
+	theGraph.SetFillStyle(1001)
+	#theGraph.SetFillStyle(3001)
 	return theGraph
 
 def getBinning(binning):
@@ -258,14 +286,24 @@ class Graph():
 		self.minus   = createGraph(tfile.Get(minus  ))
 		self.plus2   = createGraph(tfile.Get(plus2  )) if plus2  else None
 		self.minus2  = createGraph(tfile.Get(minus2 )) if minus2 else None
+	def drawAll(self):
+		if self.nominal: self.nominal.Draw() 
+		if self.plus   : self.plus   .Draw() 
+		if self.minus  : self.minus  .Draw() 
+		if self.plus2  : self.plus2  .Draw() 
+		if self.minus2 : self.minus2 .Draw() 
+		
 
 class Model():
 	def __init__(self):
 		self.name       = "[MODEL:name]"
+		self.xsecpath   = spmpath+"/[MODEL:xsecfile]"
+		self.brcorr       = eval("[MODEL:brcorr]")
 		self.mode       = "[PLOTMODE]"
 		self.plane      = "[MODEL:plane]"
 		self.deltaM     = float("[MODEL:deltaM]") if "[MODEL:deltaM]" else 1
 		self.isNloNll   = ("[MODEL:noNllNlo]"!="True")
+		self.posY       = [float(f) for f in "[MODEL:posY]".split(",")] if "[MODEL:posY]" else []
 		self.binningX   = "[MODEL:binningX]"
 		self.binningY   = "[MODEL:binningY]"
 		self.rangeX     = [float(f) for f in "[MODEL:rangeX]".split(",")]
@@ -275,6 +313,8 @@ class Model():
 		self.legendY    = "[MODEL:legendY]"
 		self.nDivX      = int("[MODEL:nDivX]")
 		self.nDivY      = int("[MODEL:nDivY]")
+		self.logX       = True if "[MODEL:logX]"=="True" else False
+		self.logY       = True if "[MODEL:logY]"=="True" else False
 		self.text       = [[MODEL:text]]
 		self.diag       = [[MODEL:diag]]
 		self.smoothCont = ("[MODEL:smoothCont]"=="True")
@@ -288,12 +328,34 @@ class Model():
 		self.gr_ep1s    = "[MODEL:gr_ep1s]" if "[MODEL:gr_ep1s]" else "gr_ep1s"+add
 		self.gr_em1s    = "[MODEL:gr_em1s]" if "[MODEL:gr_em1s]" else "gr_em1s"+add
 
+class XSlist():
+	def __init__(self, model):
+		xslist      = [l.rstrip("\n").split(":") for l in open(model.xsecpath, "r").readlines()]
+		xslist      = [[float(m.strip()),float(xs.strip()),float(err.strip())] for [m,xs,err] in xslist ]
+		self.mass   = [p[0] for p in xslist]
+		self.xs     = [p[1] for p in xslist]
+		self.err    = [p[2] for p in xslist]
+		self.brcorr = float(model.brcorr)
+	def getBin(self, mass):
+		lowerbin = int(round(mass / 25)) * 25
+		if not lowerbin in self.mass: return -1
+		return self.mass.index(lowerbin)	
+	def getErr(self, mass):
+		bin = self.getBin(mass)
+		if bin == -1: return 0
+		return self.err[bin]*self.brcorr
+	def getXS(self, mass):
+		bin = self.getBin(mass)
+		if bin == -1: return 0
+		return self.xs[bin]*self.brcorr
+
 class ThePlot():
 	def __init__(self, model, histopath, smearpath, plotpath, exts):
 		self.plotpath    = plotpath
 		self.exts        = exts
 		self.model       = model
-		self.c           = ROOT.TCanvas(self.model.name, self.model.name, 600, 600)
+		#self.c           = ROOT.TCanvas(self.model.name, self.model.name, 600, 600)
+		self.c           = ROOT.TCanvas(self.model.name, self.model.name, 800, 600)
 		b1, b2 = self.model.rangeX, self.model.rangeY
 		self.xmax = float(b1[-1]); self.xmin = float(b1[0])
 		self.ymax = float(b2[-1]); self.ymin = float(b2[0])
@@ -338,7 +400,7 @@ class ThePlot():
 		diagonal.Draw("FSAME")
 		diagonal.Draw("LSAME")
 		setattr(self.c, "diagonal"+str(num), diagonal)
-	def drawText(self):
+	def drawText(self, corr = 1.0):
 		nText  = len(self.model.text)
 		nLeg   = self.plot.nLegend
 		xRange = self.xmax-self.xmin
@@ -354,27 +416,58 @@ class ThePlot():
 			graphWhite.SetLineColor(ROOT.kBlack)
 			graphWhite.SetLineStyle(1)
 			graphWhite.SetLineWidth(3)
-			graphWhite.SetPoint(0, self.xmin, self.ymax)
-			graphWhite.SetPoint(1, self.xmax, self.ymax)
-			graphWhite.SetPoint(2, self.xmax, self.ymax*(0.97-0.07*(nText+nLeg)))
-			graphWhite.SetPoint(3, self.xmin, self.ymax*(0.97-0.07*(nText+nLeg)))
-			graphWhite.SetPoint(4, self.xmin, self.ymax)
+			if self.c.GetLogy():
+				#graphWhite.SetPoint(0, self.xmin, self.ymax)
+				#graphWhite.SetPoint(1, self.xmax, self.ymax)
+				#graphWhite.SetPoint(2, self.xmax, 400)
+				#graphWhite.SetPoint(3, self.xmin, 400)
+				#graphWhite.SetPoint(4, self.xmin, self.ymax)
+				#graphWhite.SetPoint(0, self.xmin, self.ymax)
+				#graphWhite.SetPoint(1, self.xmax, self.ymax)
+				#graphWhite.SetPoint(2, self.xmax, self.ymax/(corr*10*(nText+nLeg-1)))
+				#graphWhite.SetPoint(3, self.xmin, self.ymax/(corr*10*(nText+nLeg-1)))
+				#graphWhite.SetPoint(4, self.xmin, self.ymax)
+				graphWhite.SetPoint(0, self.xmin, NDCtoUser(0.92))
+				graphWhite.SetPoint(1, self.xmax, NDCtoUser(0.92))
+				graphWhite.SetPoint(2, self.xmax, NDCtoUser(0.92-0.08*(nText+nLeg)))
+				graphWhite.SetPoint(3, self.xmin, NDCtoUser(0.92-0.08*(nText+nLeg)))
+				graphWhite.SetPoint(4, self.xmin, NDCtoUser(0.92))
+			else:
+				graphWhite.SetPoint(0, self.xmin, self.ymax)
+				graphWhite.SetPoint(1, self.xmax, self.ymax)
+				graphWhite.SetPoint(2, self.xmax, self.ymax*(0.97-corr*0.07*(nText+nLeg)))
+				graphWhite.SetPoint(3, self.xmin, self.ymax*(0.97-corr*0.07*(nText+nLeg)))
+				graphWhite.SetPoint(4, self.xmin, self.ymax)
 			graphWhite.Draw("FSAME")
 			graphWhite.Draw("LSAME")
 			self.c.graphWhite = graphWhite
-		CMS_lumi(self.c, 4, 0)
-		text = []
+		CMS_lumi(self.c, 4, 0, 0.05)
+		#CMS_lumi(self.c, 4, 0, 0.09/corr)
+		text      = []
+		textSizes = []
+		nominal   = 0.143446295867*corr
 		for i,line in enumerate(self.model.text):
-			text.append(ROOT.TLatex(self.xmin+3*xRange/100, self.ymax-(0.15+0.75*i)*yRange/100*10, line))
-			#text[-1].SetNDC()
-			text[-1].SetTextAlign(13)
-			text[-1].SetTextFont(42)
-			text[-1].SetTextSize(0.038)
-			text[-1].Draw()
-			setattr(self.c, "text"+str(i), text[-1])
+			if self.model.mode=="braz": ##FIXME
+				text.append(ROOT.TLatex(0.16, 0.89, line))
+				text[i].SetNDC()
+			else:
+				text.append(ROOT.TLatex(self.xmin+3*xRange/100, self.ymax-(0.15+corr*0.75*i)*yRange/100*10, line))
+			text[i].SetTextAlign(13)
+			text[i].SetTextFont(42)
+			text[i].SetTextSize(0.038)
+			textSizes.append(text[i].GetYsize())
+		for i,line in enumerate(self.model.text):
+			if self.model.mode == "braz":
+				text[i].SetY(0.89-sum([0.05+relSize(ts-nominal)/2 for ts in textSizes[0:i]])+relSize(textSizes[0]-nominal)/2)
+			text[i].Draw()
+			setattr(self.c, "text"+str(i), text[i])
+		self.textCorr = sum([0.05+relSize(ts-nominal)/2 for ts in textSizes[0:nText]])-relSize(textSizes[0]-nominal)/2
 		if self.model.isNloNll:
-			textNLL = ROOT.TLatex(self.xmin+66*xRange/100, self.ymax-(0.35+0.75*nText)*yRange/100*10, "NLO-NLL excl.")
-			#textNLL.SetNDC()
+			if self.model.mode=="braz": ##FIXME
+				textNLL = ROOT.TLatex(0.63, 0.89-corr*self.textCorr-0.02, "NLO-NLL excl.")
+				textNLL.SetNDC()
+			else:
+				textNLL = ROOT.TLatex(self.xmin+66*xRange/100, self.ymax-(0.35+corr*0.75*nText)*yRange/100*10, "NLO-NLL excl.")
 			textNLL.SetTextAlign(13)
 			textNLL.SetTextFont(42)
 			textNLL.SetTextSize(0.038)
@@ -424,6 +517,9 @@ class XSecPlot():
 		fin          = ROOT.TFile(smearpath, "READ")
 		self.exp     = Graph(fin, self.model.gr_exp, self.model.gr_ep1s, self.model.gr_em1s, ROOT.kRed  , ROOT.kOrange)
 		self.obs     = Graph(fin, self.model.gr_obs, self.model.gr_op1s, self.model.gr_om1s, ROOT.kBlack, ROOT.kGray  )
+		self.exp.drawAll()
+		self.obs.drawAll()
+		self.c.Clear()
 		fin.Close()
 	def setStyle(self):
 		self.histo.GetZaxis().SetLabelFont(42)
@@ -498,7 +594,7 @@ class XSecPlot():
 	def drawHisto(self):
 		self.histo.Draw() 
 		self.xsec .Draw("COLZSAME") 
-		textCOLZ = ROOT.TLatex(0.98, 0.15, "95% C.L. upper limit on cross section [pb]")
+		textCOLZ = ROOT.TLatex(0.98, 0.15, "95% CL upper limit on cross section [pb]")
 		textCOLZ.SetNDC()
 		#textCOLZ.SetTextAlign(13)
 		textCOLZ.SetTextFont(42)
@@ -589,15 +685,15 @@ class SensPlot():
 		self.nLegend = 0 # entries of the legend (needed for white box size)
 		self.parent  = parent
 		self.model   = model
+		self.model.isNloNll = False
 		self.c       = self.parent.c
 		fin          = ROOT.TFile(histopath, "READ")
 		self.xsec    = fin.Get(self.model.plane)
-		self.histo   = self.xsec.Clone("axes")
-		self.histo.Reset()
 		self.xsec .SetDirectory(0)
-		self.histo.SetDirectory(0)
 		fin.Close()
+		self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, self.model.rangeY[0], self.model.rangeY[1])
 	def setStyle(self):
+		self.c.SetLogz(0)
 		self.histo.GetZaxis().SetLabelFont(42)
 		self.histo.GetZaxis().SetTitleFont(42)
 		self.histo.GetZaxis().SetLabelSize(0.035)
@@ -645,27 +741,55 @@ class BrazPlot():
 		self.nLegend = 2 # entries of the legend (needed for white box size)
 		self.parent  = parent
 		self.model   = model
+		self.model.isNloNll = False
+		self.xslist  = XSlist(model)
 		self.c       = self.parent.c
+		self.c.SetWindowSize(800,600)
+		self.c.SetLogy()
+		self.c.Update()
 		fin          = ROOT.TFile(histopath, "READ")
 		self.exp     = Graph(fin, "exp_xs0", "ep1s_xs0", "em1s_xs0", plus2="ep2s_xs0", minus2="em2s_xs0", create=True)
 		self.obs     = Graph(fin, "obs_xs0", "op1s_xs0", "om1s_xs0", create=True)
 		fin.Close()
 		self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, self.model.rangeY[0], self.model.rangeY[1])
-		#self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, 0.0, 2.0*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
-		#self.histo   = ROOT.TH2F("axis", "axis", 1, self.model.rangeX[0], self.model.rangeX[1], 1, 0.0*min([getGraphsMin(self.obs), getGraphsMin(self.exp)]), 2.0*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
 		self.parent.ymax = self.histo.GetYaxis().GetXmax()
 		self.parent.ymin = self.histo.GetYaxis().GetXmin()
+		self.setTheoGraph()
+	def setTheoGraph(self):
+		ordered   = [(float(m), self.xslist.getXS(m), self.xslist.getErr(m)) for m in range(int(self.model.rangeX[0]),int(self.model.rangeX[1]),25)]
+		self.theo   = ROOT.TGraph()
+		self.theo1p = ROOT.TGraph()
+		self.theo1m = ROOT.TGraph()
+		for i,od in enumerate(ordered):
+			self.theo  .SetPoint(i, float(od[0]), float(od[1])             )
+			self.theo1p.SetPoint(i, float(od[0]), float(od[1])+float(od[2]))
+			self.theo1m.SetPoint(i, float(od[0]), float(od[1])-float(od[2]))
+		self.theo  .SetLineColor(ROOT.kRed+1)
+		self.theo  .SetLineStyle(1)
+		self.theo  .SetLineWidth(2)
+		self.theo1p.SetLineColor(ROOT.kRed+1)
+		self.theo1p.SetLineStyle(2)
+		self.theo1p.SetLineWidth(1)
+		self.theo1m.SetLineColor(ROOT.kRed+1)
+		self.theo1m.SetLineStyle(2)
+		self.theo1m.SetLineWidth(1)
 	def setStyle(self):
-		self.histo.GetYaxis().SetTitle("95% C.L. upper limit on cross section [pb]")
+		self.histo.GetYaxis().SetTitle(self.model.legendY if self.model.legendY else "cross section [pb]")
+		#self.histo.GetYaxis().SetTitle(self.model.legendY if self.model.legendY else "95% CL upper limit on cross section [pb]")
+		self.c.SetLeftMargin(0.12)
 		self.c.SetRightMargin(0.08)
+		self.histo.GetYaxis().SetTitleOffset(1.10)
 		self.c.cd()
 		self.histo.Draw()
 		ROOT.gPad.Update()
 	def draw(self):
 		self.drawHisto()
 		self.drawContours()
-		self.parent.drawText() 
-		self.drawLegend() 
+		self.theo  .Draw("same")
+		self.theo1p.Draw("same")
+		self.theo1m.Draw("same")
+		self.parent.drawText(8./6) 
+		self.drawLegendNew() 
 	def drawContours(self):
 		# observed
 		if self.obs.nominal:
@@ -696,18 +820,13 @@ class BrazPlot():
 		if self.band1s     : self.band1s     .Draw("FSAME")
 		if self.exp.nominal: self.exp.nominal.Draw("LSAME")
 		if self.obs.nominal: self.obs.nominal.Draw("LSAME")
-		if self.obs.plus   : self.obs.plus   .Draw("LSAME")
-		if self.obs.minus  : self.obs.minus  .Draw("LSAME")
+		#if self.obs.plus   : self.obs.plus   .Draw("LSAME")
+		#if self.obs.minus  : self.obs.minus  .Draw("LSAME")
 	def drawHisto(self):
-		#self.histo.SetMaximum(1.5*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
-		#self.histo.SetMinimum(0.7*min([getGraphsMin(self.obs), getGraphsMin(self.exp)]))
-		#print 0.7*min([getGraphsMin(self.obs), getGraphsMin(self.exp)])
-		#print 1.5*max([getGraphsMax(self.obs), getGraphsMax(self.exp)])
-		#self.histo.GetYaxis().SetRangeUser(0.7*min([getGraphsMin(self.obs), getGraphsMin(self.exp)]), \
-		#                                   1.5*max([getGraphsMax(self.obs), getGraphsMax(self.exp)]))
 		self.histo.SetMaximum(self.parent.ymax)
 		self.histo.SetMinimum(self.parent.ymin)
-		self.c.SetLogy()
+		if self.model.logX: self.c.SetLogx()
+		if self.model.logY: self.c.SetLogy()
 		self.histo.Draw() 
 	def drawLegend(self):
 		nText=len(self.model.text)
@@ -720,8 +839,8 @@ class BrazPlot():
 		LObsP.SetLineStyle(1)
 		LObsP.SetLineWidth(2)
 		LObsP.SetMarkerStyle(20)
-		LObsP.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(0.35+0.75*nText)*yRange/100*10)
-		LObsP.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(0.35+0.75*nText)*yRange/100*10)
+		LObsP.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr+0.02-0.04))
+		LObsP.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr+0.02-0.04))
 		LObs = ROOT.TGraph(2)
 		LObs.SetName("LObs")
 		LObs.SetTitle("LObs")
@@ -729,8 +848,8 @@ class BrazPlot():
 		LObs.SetLineStyle(1)
 		LObs.SetLineWidth(4)
 		LObs.SetMarkerStyle(20)
-		LObs.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(0.50+0.75*nText)*yRange/100*10)
-		LObs.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(0.50+0.75*nText)*yRange/100*10)
+		LObs.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr+0.01-0.04))
+		LObs.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr+0.01-0.04))
 		LObsM = ROOT.TGraph(2)
 		LObsM.SetName("LObsM")
 		LObsM.SetTitle("LObsM")
@@ -738,9 +857,10 @@ class BrazPlot():
 		LObsM.SetLineStyle(1)
 		LObsM.SetLineWidth(2)
 		LObsM.SetMarkerStyle(20)
-		LObsM.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(0.65+0.75*nText)*yRange/100*10)
-		LObsM.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(0.65+0.75*nText)*yRange/100*10)
-		textObs = ROOT.TLatex(self.parent.xmin+11*xRange/100, self.parent.ymax-(0.65+0.75*nText)*yRange/100*10, "Observed #pm 1 #sigma_{theory}")
+		LObsM.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr-0.04))
+		LObsM.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr-0.04))
+		textObs = ROOT.TLatex(0.23, 0.89-self.parent.textCorr-0.04, "Observed #pm 1 #sigma_{theory}") # -0.04 cause text is too large
+		textObs.SetNDC()
 		textObs.SetTextFont(42)
 		textObs.SetTextSize(0.040)
 		textObs.Draw()
@@ -751,27 +871,28 @@ class BrazPlot():
 		LExp.SetLineColor(self.exp.linecolor)
 		LExp.SetLineStyle(7)
 		LExp.SetLineWidth(4)
-		LExp.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.15+0.75*nText)*yRange/100*10)
-		LExp.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.15+0.75*nText)*yRange/100*10)
+		LExp.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr+0.015-0.06-0.04))
+		LExp.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr+0.015-0.06-0.04))
 		LExp1S = ROOT.TGraph(4)
 		LExp1S.SetName("LExp1S")  
 		LExp1S.SetTitle("LExp1S")  
 		LExp1S.SetFillColor(ROOT.kGreen) ## FIXME: configurable?
 		LExp1S.SetLineStyle(3)
-		LExp1S.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.05+0.75*nText)*yRange/100*10)
-		LExp1S.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.05+0.75*nText)*yRange/100*10)
-		LExp1S.SetPoint(2, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.25+0.75*nText)*yRange/100*10)
-		LExp1S.SetPoint(3, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.25+0.75*nText)*yRange/100*10)
+		LExp1S.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr+0.025-0.06-0.04))
+		LExp1S.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr+0.025-0.06-0.04))
+		LExp1S.SetPoint(2, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr+0.005-0.06-0.04))
+		LExp1S.SetPoint(3, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr+0.005-0.06-0.04))
 		LExp2S = ROOT.TGraph(4)
 		LExp2S.SetName("LExp2S")  
 		LExp2S.SetTitle("LExp2S")  
 		LExp2S.SetFillColor(ROOT.kYellow) ## FIXME: configurable?
 		LExp2S.SetLineStyle(3)
-		LExp2S.SetPoint(0, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.00+0.75*nText)*yRange/100*10)
-		LExp2S.SetPoint(1, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.00+0.75*nText)*yRange/100*10)
-		LExp2S.SetPoint(2, self.parent.xmin+10*xRange/100, self.parent.ymax-(1.30+0.75*nText)*yRange/100*10)
-		LExp2S.SetPoint(3, self.parent.xmin+3 *xRange/100, self.parent.ymax-(1.30+0.75*nText)*yRange/100*10)
-		textExp = ROOT.TLatex(self.parent.xmin+11*xRange/100, self.parent.ymax-(1.30+0.75*nText)*yRange/100*10, "Expected #pm 1(2) #sigma_{experiment}")
+		LExp2S.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr+0.03-0.06-0.04))
+		LExp2S.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr+0.03-0.06-0.04))
+		LExp2S.SetPoint(2, NDCtoUser(0.22, True), NDCtoUser(0.89-self.parent.textCorr     -0.06-0.04))
+		LExp2S.SetPoint(3, NDCtoUser(0.16, True), NDCtoUser(0.89-self.parent.textCorr     -0.06-0.04))
+		textExp = ROOT.TLatex(0.23, 0.89-self.parent.textCorr-0.06-0.04, "Expected #pm 1(2) #sigma_{experiment}")
+		textExp.SetNDC()
 		textExp.SetTextFont(42)
 		textExp.SetTextSize(0.040)
 		textExp.Draw()
@@ -788,6 +909,121 @@ class BrazPlot():
 		self.c.LExp   = LExp
 		self.c.LExp1S = LExp1S
 		self.c.LExp2S = LExp2S
+	def drawLegendNew(self):
+		corr   = 7./6
+		nText  = len(self.model.text)
+		xRange = self.parent.xmax-self.parent.xmin
+		yRange = self.parent.ymax-self.parent.ymin
+		LTheoP = ROOT.TGraph(2)
+		LTheoP.SetName("LTheoP")
+		LTheoP.SetTitle("LTheoP")
+		LTheoP.SetLineColor(ROOT.kRed+1)
+		LTheoP.SetLineStyle(2)
+		LTheoP.SetLineWidth(1)
+		LTheoP.SetMarkerStyle(20)
+		LTheoP.SetPoint(0, NDCtoUser(0.56, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.025-0.04))
+		LTheoP.SetPoint(1, NDCtoUser(0.62, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.025-0.04))
+		LTheo = ROOT.TGraph(2)
+		LTheo.SetName("LTheo")
+		LTheo.SetTitle("LTheo")
+		LTheo.SetLineColor(ROOT.kRed+1)
+		LTheo.SetLineStyle(1)
+		LTheo.SetLineWidth(4)
+		LTheo.SetMarkerStyle(20)
+		LTheo.SetPoint(0, NDCtoUser(0.56, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.014-0.04))
+		LTheo.SetPoint(1, NDCtoUser(0.62, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.014-0.04))
+		LTheoM = ROOT.TGraph(2)
+		LTheoM.SetName("LTheoM")
+		LTheoM.SetTitle("LTheoM")
+		LTheoM.SetLineColor(ROOT.kRed+1)
+		LTheoM.SetLineStyle(2)
+		LTheoM.SetLineWidth(1)
+		LTheoM.SetMarkerStyle(20)
+		LTheoM.SetPoint(0, NDCtoUser(0.56, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.005-0.04))
+		LTheoM.SetPoint(1, NDCtoUser(0.62, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.005-0.04))
+		textTheo = ROOT.TLatex(0.63, 0.89-corr*self.parent.textCorr-0.04, "NLO+NLL #pm 1 #sigma_{theory}") # -0.04 cause text is too large
+		textTheo.SetNDC()
+		textTheo.SetTextFont(42)
+		textTheo.SetTextSize(0.040)
+		textTheo.Draw()
+		self.c.textTheo = textTheo
+		LObs = ROOT.TGraph(2)
+		LObs.SetName("LObs")
+		LObs.SetTitle("LObs")
+		LObs.SetLineColor(self.obs.linecolor)
+		LObs.SetLineStyle(1)
+		LObs.SetLineWidth(4)
+		LObs.SetMarkerStyle(20)
+		LObs.SetPoint(0, NDCtoUser(0.56, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.015-0.04-0.06))
+		LObs.SetPoint(1, NDCtoUser(0.62, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.015-0.04-0.06))
+		textObs = ROOT.TLatex(0.63, 0.89-corr*self.parent.textCorr-0.06-0.04, "Observed") # -0.04 cause text is too large
+		textObs.SetNDC()
+		textObs.SetTextFont(42)
+		textObs.SetTextSize(0.040)
+		textObs.Draw()
+		self.c.textObs = textObs
+		LExp = ROOT.TGraph(2)
+		LExp.SetName("LExp")
+		LExp.SetTitle("LExp")
+		LExp.SetLineColor(self.exp.linecolor)
+		LExp.SetLineStyle(7)
+		LExp.SetLineWidth(4)
+		LExp.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.014-0.04))
+		LExp.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.014-0.04))
+		LExp1S = ROOT.TGraph(4)
+		LExp1S.SetName("LExp1S")  
+		LExp1S.SetTitle("LExp1S")  
+		LExp1S.SetFillColor(ROOT.kGreen) ## FIXME: configurable?
+		LExp1S.SetLineStyle(1)
+		LExp1S.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.025-0.04))
+		LExp1S.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.025-0.04))
+		LExp1S.SetPoint(2, NDCtoUser(0.22, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.005-0.04))
+		LExp1S.SetPoint(3, NDCtoUser(0.16, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.005-0.04))
+		textExp = ROOT.TLatex(0.23, 0.89-corr*self.parent.textCorr-0.04, "Expected #pm 1 #sigma_{experiment}")
+		textExp.SetNDC()
+		textExp.SetTextFont(42)
+		textExp.SetTextSize(0.040)
+		textExp.Draw()
+		self.c.textExp = textExp
+		LExp2 = ROOT.TGraph(2)
+		LExp2.SetName("LExp2")
+		LExp2.SetTitle("LExp2")
+		LExp2.SetLineColor(self.exp.linecolor)
+		LExp2.SetLineStyle(7)
+		LExp2.SetLineWidth(4)
+		LExp2.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.015-0.06-0.04))
+		LExp2.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.015-0.06-0.04))
+		LExp2S = ROOT.TGraph(4)
+		LExp2S.SetName("LExp2S")  
+		LExp2S.SetTitle("LExp2S")  
+		LExp2S.SetFillColor(ROOT.kYellow) ## FIXME: configurable?
+		LExp2S.SetLineStyle(1)
+		LExp2S.SetPoint(0, NDCtoUser(0.16, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.03-0.06-0.04))
+		LExp2S.SetPoint(1, NDCtoUser(0.22, True), NDCtoUser(0.89-corr*self.parent.textCorr+0.03-0.06-0.04))
+		LExp2S.SetPoint(2, NDCtoUser(0.22, True), NDCtoUser(0.89-corr*self.parent.textCorr     -0.06-0.04))
+		LExp2S.SetPoint(3, NDCtoUser(0.16, True), NDCtoUser(0.89-corr*self.parent.textCorr     -0.06-0.04))
+		textExp2 = ROOT.TLatex(0.23, 0.89-corr*self.parent.textCorr-0.06-0.04, "Expected #pm 2 #sigma_{experiment}")
+		textExp2.SetNDC()
+		textExp2.SetTextFont(42)
+		textExp2.SetTextSize(0.040)
+		textExp2.Draw()
+		self.c.textExp2 = textExp2
+		LTheo .Draw("LSAME")
+		LTheoP.Draw("LSAME")
+		LTheoM.Draw("LSAME")
+		LObs  .Draw("LSAME")
+		LExp2S.Draw("FSAME")
+		LExp2 .Draw("LSAME")
+		LExp1S.Draw("FSAME")
+		LExp  .Draw("LSAME")
+		self.c.LExp   = LExp
+		self.c.LExp1S = LExp1S
+		self.c.LExp2  = LExp2  
+		self.c.LExp2S = LExp2S
+		self.c.LTheo  = LTheo
+		self.c.LTheoP = LTheoP
+		self.c.LTheoM = LTheoM
+		self.c.LObs   = LObs
 
 
 
