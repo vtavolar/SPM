@@ -63,15 +63,20 @@ class Bundle():
 		if "combine" in self.master.options.excludeTiers: return
 		if "combine" in self.modeinst.excludeTiers      : return
 		if not "combine" in self.master.options.redoTiers and self.status in ["combine","limits","summary","histo","smear","plot"]: return
+		print "doing combine"
 		self.master.clearJobs()
 		self.master.tier("combine")
 		cleandir(self.master, self.cardsdir)
 		if len(self.packages)==1:
 			self.combineTrivial()
 		else:
+			print "points ",self.points
 			for point in self.points:
+				print "combining cards"
 				self.combineCards(point)
+			print "running jobs"
 			self.master.runJobs()
+			print "clearing jobs"
 			self.master.clearJobs()
 		self.init.update("status", "combine")
 		self.inspect("combine")

@@ -448,7 +448,7 @@ for f in files:
 		if not lim in model.skipContour: 
 			g_list = g2_lims_mu[lim].GetContourList(1.0)
 			if not g_list: 
-				fout.Close()
+##				fout.Close()
 				fin.Close()
 				print "ERROR: Cannot get contour for this mass scan."
 				os.system("touch "+jobdir+"/err_"+jobid)

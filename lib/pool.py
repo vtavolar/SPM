@@ -58,6 +58,8 @@ class PoolHandler():
 		if self.master.options.view: self.view()
 	def loadPool(self):
 		for pname in os.listdir(self.pooldir):
+			print self.pooldir
+			print pname
 			if not os.path.isdir(self.pooldir+"/"+pname): continue
 			self.packages.append(Package(self.master, pname))
 		self.master.talkPool(self)
