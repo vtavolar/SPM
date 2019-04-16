@@ -8,7 +8,7 @@ class Mode():
 		self.limitCmd     = "-M Asymptotic"
 		self.excludeTiers = []
 		if self.name == "sens":
-			self.limitCmd     = "-M ProfileLikelihood  --uncapped 1 --significance -rMin -5"
+			self.limitCmd     = "-M Significance  --uncapped 1 --significance --rMin -5 -t -1 --expectSignal 1"
 			self.excludeTiers = ["smear"]
 		elif self.name == "braz":
 			self.limitCmd     = "-M Asymptotic"
