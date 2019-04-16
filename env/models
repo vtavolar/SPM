@@ -32,6 +32,44 @@ ENDDEF
 
 BEGIN::TChiWZ
   xsecfile      := xsec/xsec_ChiNeu.txt
+  mode		:= sens
+  brcorr        := 1.0/1000.
+  interpolsize  := 1
+#  histoDeltaM  +:= 40
+#  histoDeltaM  +:= 88
+  preAlgo       := k3a
+  smoothAlgo    := kba
+  nSmooth       := 2
+  smoothCont    := True
+   binningX      := 41,100,305
+  ## for xsec
+  ##binningX      := 10,75,325
+   ## for significance
+  binningY      := 12,0,60
+#  binningX      := 1200,100,700
+#  binningY      := 80,0,400
+   plane         := obs_xs
+##  plane		:= exp_xs
+  skipContour        +:= obs;op1s;om1s
+  skipContourSmooth  +:= obs;op1s;om1s
+  rangeX        := 100,260
+  rangeY        := 7.5,80
+#  rangeY        := 0,375
+#  rangeY        := 0,425
+  rangeZ        := 0.1,200
+  legendX       := m_{#tilde{#chi}_{1}^{#pm}}=m_{#tilde{#chi}_{2}^{0}} [GeV]
+  legendY       := #Delta m(#tilde{#chi}_{1}^{#pm}, #tilde{#chi}_{1}^{0}) [GeV]
+  paramY        := mass1-mass2
+  nDivX         := 205
+  nDivY         := 205
+  text         +:= pp #rightarrow #tilde{#chi}_{1}^{#pm}#tilde{#chi}_{2}^{0} #rightarrow WZ#tilde{#chi}^{0}_{1}#tilde{#chi}^{0}_{1}
+#  diag         +:= offset=85
+ENDDEF
+
+
+
+BEGIN::TChiWZ2017
+  xsecfile      := xsec/xsec_ChiNeu.txt
   mode		:= xsec
   brcorr        := 1.0/1000.
   interpolsize  := 1
